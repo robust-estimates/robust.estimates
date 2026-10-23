@@ -1,0 +1,16 @@
+[project]
+name = "robust-scoring"
+version = "0.1.0"
+description = "Скоринг и подбор кредитных продуктов для умного кредитного кабинета"
+requires-python = ">=3.12"
+dependencies = [
+    "numpy==2.5.4",
+    "pandas==3.1.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest==9.1.1"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
