@@ -1,0 +1,104 @@
+syntax = "proto3";
+package credit.v1;
+option go_package = "robust/contracts/credit/v1;creditv1";
+message Empty {}
+message ID { string id = 1; }
+message CompanyInput {
+ string inn = 1; string name = 2; int32 business_age_months = 3;
+ int64 monthly_revenue_minor = 4; int64 monthly_expenses_minor = 5; int64 monthly_debt_payments_minor = 6;
+ string kpp = 7; string ogrn = 8; string industry = 9; string registered_at = 10;
+ string representative_name = 11; string representative_position = 12; string phone = 13; string email = 14;
+ int64 annual_revenue_minor = 15; int64 annual_expenses_minor = 16; int64 cash_flow_minor = 17;
+ int64 outstanding_debt_minor = 18; bool has_overdue_debt = 19; bool marketplace_sales = 20;
+}
+message Company { string id = 1; CompanyInput data = 2; string verification_status = 3; string verification_message = 4; string owner_id = 5; int64 version = 6; }
+message CompanyList { repeated Company items = 1; }
+message CompanyUpdate { string id = 1; CompanyInput data = 2; }
+message Product {
+ string id = 1; string name = 2; repeated string purposes = 3; int64 min_amount_minor = 4; int64 max_amount_minor = 5;
+ int32 min_term_months = 6; int32 max_term_months = 7; int32 annual_rate_bps = 8; repeated string required_document_types = 9;
+ string description = 10; string collateral = 11; string payment_type = 12; repeated string tags = 13;
+}
+message ProductList { repeated Product items = 1; }
+message Need { string company_id = 1; int64 amount_minor = 2; int32 term_months = 3; string purpose = 4; string description = 5; }
+message RecommendationInput { string company_id = 1; optional int64 amount_minor = 2; int32 term_months = 3; string purpose = 4; string collateral = 5; }
+message Recommendation { Product product = 1; string reason = 2; int64 estimated_monthly_payment_minor = 3; string availability = 4; int32 rank = 5; }
+message RecommendationList { repeated Recommendation items = 1; }
+message CalculationInput { string product_id = 1; int64 amount_minor = 2; int32 term_months = 3; }
+message Payment { int32 month = 1; int64 principal_minor = 2; int64 interest_minor = 3; int64 payment_minor = 4; int64 balance_minor = 5; }
+message Calculation { int64 monthly_payment_minor = 1; int64 total_payment_minor = 2; int64 overpayment_minor = 3; repeated Payment schedule = 4; string disclaimer = 5; }
+message Consent { bool personal_data_processing = 1; bool credit_history_check = 2; }
+message DraftInput { Need need = 1; string product_id = 2; Consent consents = 3; }
+message DraftPatch { Need need = 1; optional string product_id = 2; Consent consents = 3; }
+message Application {
+ string id = 1; string company_id = 2; string product_id = 3; Need need = 4; Consent consents = 5; string status = 6;
+ int64 version = 7; string created_at = 8; string updated_at = 9; string next_action = 10; repeated string missing_fields = 11;
+ string number = 12; string company_name = 13; string inn = 14; string product_name = 15; string recommendation = 16; string owner_id = 17;
+}
+message PageInput { int32 offset = 1; int32 limit = 2; string status = 3; string search = 4; string company_id = 5; string recommendation = 6; string from_date = 7; string to_date = 8; }
+message ApplicationPage { repeated Application items = 1; int32 offset = 2; int32 limit = 3; int64 total = 4; map<string,int64> counts = 5; }
+message PatchInput { string id = 1; DraftPatch patch = 2; }
+message Document { string id = 1; string application_id = 2; string type = 3; string file_name = 4; string content_type = 5; int64 size_bytes = 6; string status = 7; string checksum = 8; string request_item_id = 9; }
+message DocumentList { repeated Document items = 1; }
+message UploadMetadata { string application_id = 1; string type = 2; string file_name = 3; string content_type = 4; string request_item_id = 5; }
+message UploadChunk { oneof value { UploadMetadata metadata = 1; bytes data = 2; } }
+message DocumentID { string application_id = 1; string document_id = 2; }
+message DownloadChunk { string file_name = 1; string content_type = 2; bytes data = 3; }
+message FieldError { string field = 1; string message = 2; }
+message Validation { bool valid = 1; repeated string missing_fields = 2; repeated FieldError errors = 3; }
+message Offer { string id = 1; string product_id = 2; int64 amount_minor = 3; int32 term_months = 4; int32 annual_rate_bps = 5; int64 monthly_payment_minor = 6; string expires_at = 7; string collateral = 8; }
+message Decision { string id = 1; string outcome = 2; string reason = 3; repeated Offer offers = 4; string decided_at = 5; }
+message InformationItem { string id = 1; string title = 2; string type = 3; bool required = 4; string status = 5; }
+message InformationRequest { string id = 1; string message = 2; repeated InformationItem items = 3; string created_at = 4; }
+message InformationList { repeated InformationRequest items = 1; }
+message ManualDecision { string outcome = 1; string reason = 2; repeated Offer offers = 3; repeated string requested_fields = 4; repeated InformationItem items = 5; }
+message ManualInput { string id = 1; ManualDecision decision = 2; }
+message DeclineInput { string id = 1; string reason = 2; }
+message AcceptInput { string id = 1; string offer_id = 2; }
+message Loan { string id = 1; string application_id = 2; string offer_id = 3; int64 amount_minor = 4; string issued_at = 5; bool simulated = 6; }
+message Event { string id = 1; string at = 2; string from_status = 3; string to_status = 4; string message = 5; string actor_role = 6; }
+message EventList { repeated Event items = 1; }
+message Check { string source = 1; string status = 2; string summary = 3; string checked_at = 4; }
+message Scoring { int32 score = 1; string risk_level = 2; repeated string factors = 3; string model_version = 4; repeated Check checks = 5; string recommendation = 6; }
+message Features { int32 business_age_months = 1; int64 monthly_revenue_minor = 2; int64 monthly_expenses_minor = 3; int64 monthly_debt_payments_minor = 4; int64 requested_amount_minor = 5; int32 term_months = 6; bool has_overdue_debt = 7; }
+message ScoringInput { string scoring_request_id = 1; string application_id = 2; int64 application_version = 3; Features features = 4; }
+message ScoringOutput { string scoring_request_id = 1; string application_id = 2; int64 application_version = 3; Scoring scoring = 4; }
+message FeedItem { string id = 1; string title = 2; string body = 3; string reason = 4; string created_at = 5; string application_id = 6; }
+message FeedList { repeated FeedItem items = 1; }
+message Overview { Application application = 1; Company company_snapshot = 2; Product product_snapshot = 3; Scoring scoring = 4; Decision decision = 5; repeated Document documents = 6; repeated InformationRequest information_requests = 7; }
+service CompanyService {
+ rpc CreateCompany(CompanyInput) returns (Company);
+ rpc GetCompany(ID) returns (Company);
+ rpc ListCompanies(Empty) returns (CompanyList);
+ rpc UpdateCompany(CompanyUpdate) returns (Company);
+ rpc VerifyCompany(ID) returns (Company);
+ rpc ListProducts(Empty) returns (ProductList);
+ rpc GetProduct(ID) returns (Product);
+ rpc Recommend(RecommendationInput) returns (RecommendationList);
+ rpc Calculate(CalculationInput) returns (Calculation);
+}
+service ApplicationService {
+ rpc CreateApplication(DraftInput) returns (Application);
+ rpc GetApplication(ID) returns (Application);
+ rpc ListApplications(PageInput) returns (ApplicationPage);
+ rpc BankApplications(PageInput) returns (ApplicationPage);
+ rpc PatchApplication(PatchInput) returns (Application);
+ rpc Validate(ID) returns (Validation);
+ rpc Submit(ID) returns (Application);
+ rpc Cancel(ID) returns (Application);
+ rpc GetDecision(ID) returns (Decision);
+ rpc Accept(AcceptInput) returns (Application);
+ rpc Decline(DeclineInput) returns (Application);
+ rpc Issue(ID) returns (Loan);
+ rpc History(ID) returns (EventList);
+ rpc GetScoring(ID) returns (Scoring);
+ rpc Decide(ManualInput) returns (Application);
+ rpc GetOverview(ID) returns (Overview);
+ rpc InformationRequests(ID) returns (InformationList);
+ rpc Feed(Empty) returns (FeedList);
+ rpc ListDocuments(ID) returns (DocumentList);
+ rpc UploadDocument(stream UploadChunk) returns (Document);
+ rpc DeleteDocument(DocumentID) returns (Empty);
+ rpc DownloadDocument(DocumentID) returns (stream DownloadChunk);
+}
+service ScoringService { rpc Evaluate(ScoringInput) returns (ScoringOutput); }

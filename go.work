@@ -1,0 +1,8 @@
+go 1.27.0
+use (
+ ./contracts
+ ./platform
+ ./gateway
+ ./company-service
+ ./application-service
+)

@@ -3,3 +3,14 @@
 .env
 .env.*
 !.env.example
+.venv/
+__pycache__/
+*.pyc
+coverage.out
+coverage.html
+node_modules/
+bin/
+
+api-report*.json
+
+build/
