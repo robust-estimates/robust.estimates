@@ -1,11 +1,14 @@
----
 openapi: 3.0.3
 info:
   title: Умный кредитный кабинет предпринимателя
-  version: 1.0.0
+  version: 1.2.0
+  description: 'Работающий учебный backend robust.estimates. REST на gateway, gRPC между сервисами. Деньги
+    — копейки RUB, ставки — базисные пункты. ФНС/БКИ, скоринг rules-v1, подписание и выдача моделируются
+    локально. Авторизация: тестовые учётные записи. Команды используют Idempotency-Key, изменение заявки
+    — If-Match.'
 servers:
 - url: http://localhost:8080/api/v1
-  description: Предполагаемый адрес backend команды; не входит в этот комплект
+  description: Локальный Docker Compose
 tags:
 - name: Вход
 - name: Компания
@@ -18,64 +21,73 @@ tags:
 security:
 - bearerAuth: []
 paths:
-  "/auth/login":
+  /auth/login:
     post:
       tags:
       - Вход
       summary: Войти в кабинет
       operationId: postAuthLogin
-      description: Авторизация
+      description: Демонстрационные учётные записи из README. JWT действует один час; для продления требуется
+        новый вход.
       responses:
         '200':
           description: Успешно
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Session"
+                $ref: '#/components/schemas/Session'
         '400':
-          description: Некорректный запрос
+          description: Некорректный JSON или неизвестные поля
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '401':
           description: Требуется вход
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '403':
           description: Недостаточно прав
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '404':
           description: Объект не найден или недоступен
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '409':
           description: Конфликт версии, ключа идемпотентности или статуса
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '422':
           description: Данные не прошли проверку
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: Слишком много попыток входа
+        '413':
+          description: Тело запроса больше 8 КиБ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              "$ref": "#/components/schemas/Credentials"
+              $ref: '#/components/schemas/Credentials'
       security: []
-  "/me":
+  /me:
     get:
       tags:
       - Вход
@@ -88,94 +100,93 @@ paths:
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/User"
+                $ref: '#/components/schemas/User'
         '400':
           description: Некорректный запрос
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '401':
           description: Требуется вход
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '403':
           description: Недостаточно прав
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '404':
           description: Объект не найден или недоступен
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '409':
           description: Конфликт версии, ключа идемпотентности или статуса
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '422':
           description: Данные не прошли проверку
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
-  "/companies":
+                $ref: '#/components/schemas/Error'
+  /companies:
     post:
       tags:
       - Компания
       summary: Сохранить сведения о компании
       operationId: postCompanies
-      description: Создает компанию, связанную с текущим CLIENT; employee не создает
-        компании клиентов.
+      description: Создает компанию, связанную с текущим CLIENT; employee не создает компании клиентов.
       responses:
         '201':
           description: Успешно
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Company"
+                $ref: '#/components/schemas/Company'
         '400':
           description: Некорректный запрос
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '401':
           description: Требуется вход
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '403':
           description: Недостаточно прав
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '404':
           description: Объект не найден или недоступен
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '409':
           description: Конфликт версии, ключа идемпотентности или статуса
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '422':
           description: Данные не прошли проверку
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
       parameters:
       - name: Idempotency-Key
         in: header
@@ -184,15 +195,67 @@ paths:
           type: string
           minLength: 8
           maxLength: 128
-        description: Повтор с тем же ключом и телом возвращает исходный результат;
-          другое тело — 409. Хранение 24 часа в рамках пользователя и операции.
+        description: Повтор с тем же ключом и телом возвращает исходный результат; другое тело — 409.
+          Хранение 24 часа в рамках пользователя и операции.
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              "$ref": "#/components/schemas/CompanyInput"
-  "/companies/{companyId}":
+              $ref: '#/components/schemas/CompanyInput'
+    get:
+      tags:
+      - Компания
+      summary: Мои компании
+      operationId: getCompanies
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          description: Успешно
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Company'
+        '400':
+          description: Некорректный запрос
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Требуется вход
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Недостаточно прав
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Объект не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Конфликт версии или статуса
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Ошибка проверки данных
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /companies/{companyId}:
     get:
       tags:
       - Компания
@@ -205,43 +268,43 @@ paths:
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Company"
+                $ref: '#/components/schemas/Company'
         '400':
           description: Некорректный запрос
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '401':
           description: Требуется вход
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '403':
           description: Недостаточно прав
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '404':
           description: Объект не найден или недоступен
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '409':
           description: Конфликт версии, ключа идемпотентности или статуса
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '422':
           description: Данные не прошли проверку
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
       parameters:
       - name: companyId
         in: path
@@ -250,7 +313,76 @@ paths:
           type: string
           minLength: 1
         description: ''
-  "/companies/{companyId}/verification":
+    patch:
+      tags:
+      - Компания
+      summary: Обновить профиль компании
+      operationId: patchCompaniescompanyid
+      description: Полная замена полей профиля. ИНН неизменяем. Проверка ФНС сбрасывается, выполните verification
+        повторно.
+      parameters:
+      - name: companyId
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 8
+          maxLength: 128
+      responses:
+        '200':
+          description: Успешно
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Company'
+        '400':
+          description: Некорректный запрос
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Требуется вход
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Недостаточно прав
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Объект не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Конфликт версии или статуса
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Ошибка проверки данных
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CompanyInput'
+  /companies/{companyId}/verification:
     post:
       tags:
       - Компания
@@ -263,43 +395,43 @@ paths:
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Company"
+                $ref: '#/components/schemas/Company'
         '400':
           description: Некорректный запрос
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '401':
           description: Требуется вход
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '403':
           description: Недостаточно прав
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '404':
           description: Объект не найден или недоступен
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '409':
           description: Конфликт версии, ключа идемпотентности или статуса
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '422':
           description: Данные не прошли проверку
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
       parameters:
       - name: companyId
         in: path
@@ -315,9 +447,9 @@ paths:
           type: string
           minLength: 8
           maxLength: 128
-        description: Повтор с тем же ключом и телом возвращает исходный результат;
-          другое тело — 409. Хранение 24 часа в рамках пользователя и операции.
-  "/products":
+        description: Повтор с тем же ключом и телом возвращает исходный результат; другое тело — 409.
+          Хранение 24 часа в рамках пользователя и операции.
+  /products:
     get:
       tags:
       - Подбор
@@ -332,51 +464,62 @@ paths:
               schema:
                 type: array
                 items:
-                  "$ref": "#/components/schemas/Product"
+                  $ref: '#/components/schemas/Product'
         '400':
           description: Некорректный запрос
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '401':
           description: Требуется вход
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '403':
           description: Недостаточно прав
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '404':
           description: Объект не найден или недоступен
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '409':
           description: Конфликт версии, ключа идемпотентности или статуса
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '422':
           description: Данные не прошли проверку
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
-  "/recommendations":
+                $ref: '#/components/schemas/Error'
+      parameters:
+      - name: search
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: tag
+        in: query
+        required: false
+        schema:
+          type: string
+  /recommendations:
     post:
       tags:
       - Подбор
       summary: Подобрать продукты под потребность
       operationId: postRecommendations
-      description: Использует сохраненные данные проверенной компании. Рекомендация
-        не является кредитным решением.
+      description: Использует сохраненные данные проверенной компании. Рекомендация не является кредитным
+        решением.
       responses:
         '200':
           description: Успешно
@@ -385,43 +528,43 @@ paths:
               schema:
                 type: array
                 items:
-                  "$ref": "#/components/schemas/Recommendation"
+                  $ref: '#/components/schemas/Recommendation'
         '400':
           description: Некорректный запрос
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '401':
           description: Требуется вход
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '403':
           description: Недостаточно прав
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '404':
           description: Объект не найден или недоступен
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '409':
           description: Конфликт версии, ключа идемпотентности или статуса
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '422':
           description: Данные не прошли проверку
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
       parameters:
       - name: Idempotency-Key
         in: header
@@ -430,29 +573,29 @@ paths:
           type: string
           minLength: 8
           maxLength: 128
-        description: Повтор с тем же ключом и телом возвращает исходный результат;
-          другое тело — 409. Хранение 24 часа в рамках пользователя и операции.
+        description: Повтор с тем же ключом и телом возвращает исходный результат; другое тело — 409.
+          Хранение 24 часа в рамках пользователя и операции.
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              "$ref": "#/components/schemas/Need"
-  "/applications":
+              $ref: '#/components/schemas/RecommendationInput'
+  /applications:
     post:
       tags:
       - Заявки
       summary: Создать черновик заявки
       operationId: postApplications
-      description: 'Начальный статус IN_PROGRESS. Компания принадлежит пользователю.
-        Пример: 100000000 копеек = 1 млн рублей.'
+      description: 'Начальный статус IN_PROGRESS. Компания принадлежит пользователю. Пример: 100000000
+        копеек = 1 млн рублей.'
       responses:
         '201':
           description: Успешно
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Application"
+                $ref: '#/components/schemas/Application'
           headers:
             ETag:
               description: Версия заявки в двойных кавычках
@@ -464,37 +607,37 @@ paths:
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '401':
           description: Требуется вход
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '403':
           description: Недостаточно прав
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '404':
           description: Объект не найден или недоступен
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '409':
           description: Конфликт версии, ключа идемпотентности или статуса
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '422':
           description: Данные не прошли проверку
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
       parameters:
       - name: Idempotency-Key
         in: header
@@ -503,14 +646,14 @@ paths:
           type: string
           minLength: 8
           maxLength: 128
-        description: Повтор с тем же ключом и телом возвращает исходный результат;
-          другое тело — 409. Хранение 24 часа в рамках пользователя и операции.
+        description: Повтор с тем же ключом и телом возвращает исходный результат; другое тело — 409.
+          Хранение 24 часа в рамках пользователя и операции.
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              "$ref": "#/components/schemas/DraftInput"
+              $ref: '#/components/schemas/DraftInput'
     get:
       tags:
       - Заявки
@@ -523,43 +666,43 @@ paths:
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/PageApplications"
+                $ref: '#/components/schemas/PageApplications'
         '400':
           description: Некорректный запрос
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '401':
           description: Требуется вход
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '403':
           description: Недостаточно прав
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '404':
           description: Объект не найден или недоступен
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '409':
           description: Конфликт версии, ключа идемпотентности или статуса
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '422':
           description: Данные не прошли проверку
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
       parameters:
       - name: offset
         in: query
@@ -576,21 +719,53 @@ paths:
           minimum: 1
           maximum: 100
         description: ''
-  "/applications/{applicationId}":
+      - name: status
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: search
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: companyId
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: recommendation
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: fromDate
+        in: query
+        required: false
+        schema:
+          type: string
+          format: date-time
+      - name: toDate
+        in: query
+        required: false
+        schema:
+          type: string
+          format: date-time
+  /applications/{applicationId}:
     get:
       tags:
       - Заявки
       summary: Текущий статус и следующее действие
       operationId: getApplicationsApplicationid
-      description: CLIENT видит только свои заявки. Опрос во время обработки каждые
-        2 секунды. nextAction содержит понятное клиенту описание.
+      description: CLIENT видит только свои заявки. Опрос во время обработки каждые 2 секунды. nextAction
+        содержит понятное клиенту описание.
       responses:
         '200':
           description: Успешно
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Application"
+                $ref: '#/components/schemas/Application'
           headers:
             ETag:
               description: Версия заявки в двойных кавычках
@@ -602,37 +777,37 @@ paths:
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '401':
           description: Требуется вход
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '403':
           description: Недостаточно прав
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '404':
           description: Объект не найден или недоступен
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '409':
           description: Конфликт версии, ключа идемпотентности или статуса
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '422':
           description: Данные не прошли проверку
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
       parameters:
       - name: applicationId
         in: path
@@ -646,16 +821,15 @@ paths:
       - Заявки
       summary: Дополнить или исправить заявку
       operationId: patchApplicationsApplicationid
-      description: Только IN_PROGRESS или NEEDS_INFO. need заменяется целиком. При
-        смене компании документы нужно загрузить заново; после первой отправки компания
-        неизменяема.
+      description: CLIENT; только IN_PROGRESS или NEEDS_INFO. need заменяется целиком. Компания неизменяема.
+        После первой отправки продукт неизменяем.
       responses:
         '200':
           description: Успешно
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Application"
+                $ref: '#/components/schemas/Application'
           headers:
             ETag:
               description: Версия заявки в двойных кавычках
@@ -667,37 +841,37 @@ paths:
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '401':
           description: Требуется вход
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '403':
           description: Недостаточно прав
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '404':
           description: Объект не найден или недоступен
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '409':
           description: Конфликт версии, ключа идемпотентности или статуса
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '422':
           description: Данные не прошли проверку
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
       parameters:
       - name: applicationId
         in: path
@@ -713,23 +887,22 @@ paths:
           type: string
           minLength: 8
           maxLength: 128
-        description: Повтор с тем же ключом и телом возвращает исходный результат;
-          другое тело — 409. Хранение 24 часа в рамках пользователя и операции.
+        description: Повтор с тем же ключом и телом возвращает исходный результат; другое тело — 409.
+          Хранение 24 часа в рамках пользователя и операции.
       - name: If-Match
         in: header
         required: true
         schema:
           type: string
           example: '"3"'
-        description: Версия из ETag / Application.version в двойных кавычках. Устаревшая
-          версия — 409.
+        description: Версия из ETag / Application.version в двойных кавычках. Устаревшая версия — 409.
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              "$ref": "#/components/schemas/DraftPatch"
-  "/applications/{applicationId}/documents":
+              $ref: '#/components/schemas/DraftPatch'
+  /applications/{applicationId}/documents:
     get:
       tags:
       - Документы
@@ -744,43 +917,43 @@ paths:
               schema:
                 type: array
                 items:
-                  "$ref": "#/components/schemas/Document"
+                  $ref: '#/components/schemas/Document'
         '400':
           description: Некорректный запрос
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '401':
           description: Требуется вход
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '403':
           description: Недостаточно прав
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '404':
           description: Объект не найден или недоступен
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '409':
           description: Конфликт версии, ключа идемпотентности или статуса
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '422':
           description: Данные не прошли проверку
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
       parameters:
       - name: applicationId
         in: path
@@ -794,51 +967,51 @@ paths:
       - Документы
       summary: Прикрепить документ
       operationId: postApplicationsApplicationidDocuments
-      description: Только IN_PROGRESS или NEEDS_INFO. PDF/PNG/JPEG, до 10 МиБ; сервер
-        проверяет содержимое и тип. Новая версия заявки доступна через GET.
+      description: CLIENT; IN_PROGRESS или NEEDS_INFO. PDF/PNG/JPEG до 10 МиБ, проверка фактического MIME.
+        После изменения получите свежую version через GET. requestItemId связывает файл с запросом банка.
       responses:
         '201':
           description: Успешно
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Document"
+                $ref: '#/components/schemas/Document'
         '400':
           description: Некорректный запрос
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '401':
           description: Требуется вход
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '403':
           description: Недостаточно прав
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '404':
           description: Объект не найден или недоступен
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '409':
           description: Конфликт версии, ключа идемпотентности или статуса
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '422':
           description: Данные не прошли проверку
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '413':
           description: Файл больше 10 МиБ
         '415':
@@ -858,16 +1031,15 @@ paths:
           type: string
           minLength: 8
           maxLength: 128
-        description: Повтор с тем же ключом и телом возвращает исходный результат;
-          другое тело — 409. Хранение 24 часа в рамках пользователя и операции.
+        description: Повтор с тем же ключом и телом возвращает исходный результат; другое тело — 409.
+          Хранение 24 часа в рамках пользователя и операции.
       - name: If-Match
         in: header
         required: true
         schema:
           type: string
           example: '"3"'
-        description: Версия из ETag / Application.version в двойных кавычках. Устаревшая
-          версия — 409.
+        description: Версия из ETag / Application.version в двойных кавычках. Устаревшая версия — 409.
       requestBody:
         required: true
         content:
@@ -886,17 +1058,19 @@ paths:
                 file:
                   type: string
                   format: binary
+                requestItemId:
+                  type: string
+                  description: ID пункта запроса дополнительных сведений
               required:
               - type
               - file
-  "/applications/{applicationId}/documents/{documentId}":
+  /applications/{applicationId}/documents/{documentId}:
     delete:
       tags:
       - Документы
       summary: Удалить документ
       operationId: deleteApplicationsApplicationidDocumentsDocumentid
-      description: Только IN_PROGRESS или NEEDS_INFO; документ должен относиться к
-        этой заявке.
+      description: Только IN_PROGRESS или NEEDS_INFO; документ должен относиться к этой заявке.
       responses:
         '204':
           description: Успешно
@@ -905,37 +1079,37 @@ paths:
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '401':
           description: Требуется вход
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '403':
           description: Недостаточно прав
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '404':
           description: Объект не найден или недоступен
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '409':
           description: Конфликт версии, ключа идемпотентности или статуса
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '422':
           description: Данные не прошли проверку
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
       parameters:
       - name: applicationId
         in: path
@@ -958,67 +1132,66 @@ paths:
           type: string
           minLength: 8
           maxLength: 128
-        description: Повтор с тем же ключом и телом возвращает исходный результат;
-          другое тело — 409. Хранение 24 часа в рамках пользователя и операции.
+        description: Повтор с тем же ключом и телом возвращает исходный результат; другое тело — 409.
+          Хранение 24 часа в рамках пользователя и операции.
       - name: If-Match
         in: header
         required: true
         schema:
           type: string
           example: '"3"'
-        description: Версия из ETag / Application.version в двойных кавычках. Устаревшая
-          версия — 409.
-  "/applications/{applicationId}/validation":
+        description: Версия из ETag / Application.version в двойных кавычках. Устаревшая версия — 409.
+  /applications/{applicationId}/validation:
     post:
       tags:
       - Заявки
       summary: Проверить комплектность заявки
       operationId: postApplicationsApplicationidValidation
-      description: Не запускает скоринг. Проверяет согласия, параметры продукта, финансы
-        и обязательные документы.
+      description: Проверяет комплектность без смены статуса и версии; операция чтения не сохраняет идемпотентный
+        ответ.
       responses:
         '200':
           description: Успешно
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Validation"
+                $ref: '#/components/schemas/Validation'
         '400':
           description: Некорректный запрос
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '401':
           description: Требуется вход
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '403':
           description: Недостаточно прав
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '404':
           description: Объект не найден или недоступен
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '409':
           description: Конфликт версии, ключа идемпотентности или статуса
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '422':
           description: Данные не прошли проверку
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
       parameters:
       - name: applicationId
         in: path
@@ -1034,32 +1207,30 @@ paths:
           type: string
           minLength: 8
           maxLength: 128
-        description: Повтор с тем же ключом и телом возвращает исходный результат;
-          другое тело — 409. Хранение 24 часа в рамках пользователя и операции.
+        description: Повтор с тем же ключом и телом возвращает исходный результат; другое тело — 409.
+          Хранение 24 часа в рамках пользователя и операции.
       - name: If-Match
         in: header
         required: true
         schema:
           type: string
           example: '"3"'
-        description: Версия из ETag / Application.version в двойных кавычках. Устаревшая
-          версия — 409.
-  "/applications/{applicationId}/submit":
+        description: Версия из ETag / Application.version в двойных кавычках. Устаревшая версия — 409.
+  /applications/{applicationId}/submit:
     post:
       tags:
       - Заявки
       summary: Отправить заявку или уточненные данные
       operationId: postApplicationsApplicationidSubmit
-      description: 'IN_PROGRESS/NEEDS_INFO → SCORING. Неполные данные — 422 без смены
-        статуса. Проверки и скоринг запускаются сервером. Недоступность мока не означает
-        отказ: заявка переводится в MANUAL_CHECK.'
+      description: 'IN_PROGRESS/NEEDS_INFO → SCORING. Неполные данные — 422 без смены статуса. Проверки
+        и скоринг запускаются сервером. Недоступность мока не означает отказ: заявка переводится в MANUAL_CHECK.'
       responses:
         '202':
           description: Принято в обработку; опрашивайте GET заявки
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Application"
+                $ref: '#/components/schemas/Application'
           headers:
             ETag:
               description: Версия заявки в двойных кавычках
@@ -1071,37 +1242,37 @@ paths:
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '401':
           description: Требуется вход
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '403':
           description: Недостаточно прав
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '404':
           description: Объект не найден или недоступен
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '409':
           description: Конфликт версии, ключа идемпотентности или статуса
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '422':
           description: Данные не прошли проверку
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
       parameters:
       - name: applicationId
         in: path
@@ -1117,67 +1288,66 @@ paths:
           type: string
           minLength: 8
           maxLength: 128
-        description: Повтор с тем же ключом и телом возвращает исходный результат;
-          другое тело — 409. Хранение 24 часа в рамках пользователя и операции.
+        description: Повтор с тем же ключом и телом возвращает исходный результат; другое тело — 409.
+          Хранение 24 часа в рамках пользователя и операции.
       - name: If-Match
         in: header
         required: true
         schema:
           type: string
           example: '"3"'
-        description: Версия из ETag / Application.version в двойных кавычках. Устаревшая
-          версия — 409.
-  "/applications/{applicationId}/decision":
+        description: Версия из ETag / Application.version в двойных кавычках. Устаревшая версия — 409.
+  /applications/{applicationId}/decision:
     get:
       tags:
       - Результат
       summary: Получить решение и предложения
       operationId: getApplicationsApplicationidDecision
-      description: До появления решения — 409. В REJECTED список offers пуст; в APPROVED/ALTERNATIVE
-        — непуст. Клиент не видит внутренние факторы скоринга.
+      description: До появления решения — 409. В REJECTED список offers пуст; в APPROVED/ALTERNATIVE —
+        непуст. Клиент не видит внутренние факторы скоринга.
       responses:
         '200':
           description: Успешно
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Decision"
+                $ref: '#/components/schemas/Decision'
         '400':
           description: Некорректный запрос
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '401':
           description: Требуется вход
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '403':
           description: Недостаточно прав
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '404':
           description: Объект не найден или недоступен
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '409':
           description: Конфликт версии, ключа идемпотентности или статуса
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '422':
           description: Данные не прошли проверку
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
       parameters:
       - name: applicationId
         in: path
@@ -1186,21 +1356,21 @@ paths:
           type: string
           minLength: 1
         description: ''
-  "/applications/{applicationId}/accept":
+  /applications/{applicationId}/accept:
     post:
       tags:
       - Результат
       summary: Принять конкретное предложение
       operationId: postApplicationsApplicationidAccept
-      description: APPROVED/ALTERNATIVE → ACCEPTED. Проверить принадлежность и срок
-        предложения. Просроченное предложение — 409.
+      description: APPROVED/ALTERNATIVE → ACCEPTED. Проверить принадлежность и срок предложения. Просроченное
+        предложение — 409.
       responses:
         '200':
           description: Успешно
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Application"
+                $ref: '#/components/schemas/Application'
           headers:
             ETag:
               description: Версия заявки в двойных кавычках
@@ -1212,37 +1382,37 @@ paths:
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '401':
           description: Требуется вход
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '403':
           description: Недостаточно прав
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '404':
           description: Объект не найден или недоступен
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '409':
           description: Конфликт версии, ключа идемпотентности или статуса
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '422':
           description: Данные не прошли проверку
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
       parameters:
       - name: applicationId
         in: path
@@ -1258,16 +1428,15 @@ paths:
           type: string
           minLength: 8
           maxLength: 128
-        description: Повтор с тем же ключом и телом возвращает исходный результат;
-          другое тело — 409. Хранение 24 часа в рамках пользователя и операции.
+        description: Повтор с тем же ключом и телом возвращает исходный результат; другое тело — 409.
+          Хранение 24 часа в рамках пользователя и операции.
       - name: If-Match
         in: header
         required: true
         schema:
           type: string
           example: '"3"'
-        description: Версия из ETag / Application.version в двойных кавычках. Устаревшая
-          версия — 409.
+        description: Версия из ETag / Application.version в двойных кавычках. Устаревшая версия — 409.
       requestBody:
         required: true
         content:
@@ -1280,7 +1449,7 @@ paths:
                   type: string
               required:
               - offerId
-  "/applications/{applicationId}/decline":
+  /applications/{applicationId}/decline:
     post:
       tags:
       - Результат
@@ -1293,7 +1462,7 @@ paths:
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Application"
+                $ref: '#/components/schemas/Application'
           headers:
             ETag:
               description: Версия заявки в двойных кавычках
@@ -1305,37 +1474,37 @@ paths:
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '401':
           description: Требуется вход
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '403':
           description: Недостаточно прав
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '404':
           description: Объект не найден или недоступен
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '409':
           description: Конфликт версии, ключа идемпотентности или статуса
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '422':
           description: Данные не прошли проверку
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
       parameters:
       - name: applicationId
         in: path
@@ -1351,16 +1520,15 @@ paths:
           type: string
           minLength: 8
           maxLength: 128
-        description: Повтор с тем же ключом и телом возвращает исходный результат;
-          другое тело — 409. Хранение 24 часа в рамках пользователя и операции.
+        description: Повтор с тем же ключом и телом возвращает исходный результат; другое тело — 409.
+          Хранение 24 часа в рамках пользователя и операции.
       - name: If-Match
         in: header
         required: true
         schema:
           type: string
           example: '"3"'
-        description: Версия из ETag / Application.version в двойных кавычках. Устаревшая
-          версия — 409.
+        description: Версия из ETag / Application.version в двойных кавычках. Устаревшая версия — 409.
       requestBody:
         required: true
         content:
@@ -1372,21 +1540,21 @@ paths:
                 reason:
                   type: string
                   maxLength: 1000
-  "/applications/{applicationId}/cancel":
+  /applications/{applicationId}/cancel:
     post:
       tags:
       - Заявки
       summary: Отозвать заявку
       operationId: postApplicationsApplicationidCancel
-      description: Доступно в IN_PROGRESS, NEEDS_INFO, SCORING, MANUAL_CHECK. Переход
-        в CANCELLED; поздний результат фоновой задачи игнорируется.
+      description: CLIENT; IN_PROGRESS, NEEDS_INFO, SCORING или MANUAL_CHECK → CANCELLED. Поздние результаты
+        worker игнорируются.
       responses:
         '200':
           description: Успешно
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Application"
+                $ref: '#/components/schemas/Application'
           headers:
             ETag:
               description: Версия заявки в двойных кавычках
@@ -1398,37 +1566,37 @@ paths:
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '401':
           description: Требуется вход
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '403':
           description: Недостаточно прав
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '404':
           description: Объект не найден или недоступен
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '409':
           description: Конфликт версии, ключа идемпотентности или статуса
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '422':
           description: Данные не прошли проверку
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
       parameters:
       - name: applicationId
         in: path
@@ -1444,67 +1612,66 @@ paths:
           type: string
           minLength: 8
           maxLength: 128
-        description: Повтор с тем же ключом и телом возвращает исходный результат;
-          другое тело — 409. Хранение 24 часа в рамках пользователя и операции.
+        description: Повтор с тем же ключом и телом возвращает исходный результат; другое тело — 409.
+          Хранение 24 часа в рамках пользователя и операции.
       - name: If-Match
         in: header
         required: true
         schema:
           type: string
           example: '"3"'
-        description: Версия из ETag / Application.version в двойных кавычках. Устаревшая
-          версия — 409.
-  "/applications/{applicationId}/issuance":
+        description: Версия из ETag / Application.version в двойных кавычках. Устаревшая версия — 409.
+  /applications/{applicationId}/issuance:
     post:
       tags:
       - Результат
       summary: Смоделировать выдачу кредита
       operationId: postApplicationsApplicationidIssuance
-      description: ACCEPTED → ISSUED атомарно с созданием единственного Loan. Выдача
-        без реальных денег и подписания; повтор не создает второй кредит.
+      description: ACCEPTED → ISSUED атомарно с созданием единственного Loan. Выдача без реальных денег
+        и подписания; повтор не создает второй кредит.
       responses:
         '201':
           description: Успешно
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Loan"
+                $ref: '#/components/schemas/Loan'
         '400':
           description: Некорректный запрос
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '401':
           description: Требуется вход
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '403':
           description: Недостаточно прав
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '404':
           description: Объект не найден или недоступен
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '409':
           description: Конфликт версии, ключа идемпотентности или статуса
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '422':
           description: Данные не прошли проверку
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
       parameters:
       - name: applicationId
         in: path
@@ -1520,24 +1687,22 @@ paths:
           type: string
           minLength: 8
           maxLength: 128
-        description: Повтор с тем же ключом и телом возвращает исходный результат;
-          другое тело — 409. Хранение 24 часа в рамках пользователя и операции.
+        description: Повтор с тем же ключом и телом возвращает исходный результат; другое тело — 409.
+          Хранение 24 часа в рамках пользователя и операции.
       - name: If-Match
         in: header
         required: true
         schema:
           type: string
           example: '"3"'
-        description: Версия из ETag / Application.version в двойных кавычках. Устаревшая
-          версия — 409.
-  "/applications/{applicationId}/history":
+        description: Версия из ETag / Application.version в двойных кавычках. Устаревшая версия — 409.
+  /applications/{applicationId}/history:
     get:
       tags:
       - Заявки
       summary: История изменений для клиента
       operationId: getApplicationsApplicationidHistory
-      description: Хронологическая история без внутренних комментариев банка и чувствительных
-        данных.
+      description: Хронологическая история без внутренних комментариев банка и чувствительных данных.
       responses:
         '200':
           description: Успешно
@@ -1546,43 +1711,43 @@ paths:
               schema:
                 type: array
                 items:
-                  "$ref": "#/components/schemas/Event"
+                  $ref: '#/components/schemas/Event'
         '400':
           description: Некорректный запрос
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '401':
           description: Требуется вход
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '403':
           description: Недостаточно прав
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '404':
           description: Объект не найден или недоступен
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '409':
           description: Конфликт версии, ключа идемпотентности или статуса
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '422':
           description: Данные не прошли проверку
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
       parameters:
       - name: applicationId
         in: path
@@ -1591,7 +1756,7 @@ paths:
           type: string
           minLength: 1
         description: ''
-  "/bank/applications":
+  /bank/applications:
     get:
       tags:
       - Банк
@@ -1604,43 +1769,43 @@ paths:
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/PageApplications"
+                $ref: '#/components/schemas/PageApplications'
         '400':
           description: Некорректный запрос
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '401':
           description: Требуется вход
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '403':
           description: Недостаточно прав
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '404':
           description: Объект не найден или недоступен
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '409':
           description: Конфликт версии, ключа идемпотентности или статуса
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '422':
           description: Данные не прошли проверку
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
       parameters:
       - name: offset
         in: query
@@ -1661,59 +1826,86 @@ paths:
         in: query
         required: false
         schema:
-          "$ref": "#/components/schemas/Status"
+          $ref: '#/components/schemas/Status'
         description: ''
-  "/bank/applications/{applicationId}/scoring":
+      - name: search
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: companyId
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: recommendation
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: fromDate
+        in: query
+        required: false
+        schema:
+          type: string
+          format: date-time
+      - name: toDate
+        in: query
+        required: false
+        schema:
+          type: string
+          format: date-time
+  /bank/applications/{applicationId}/scoring:
     get:
       tags:
       - Банк
       summary: Результаты проверок и скоринга
       operationId: getBankApplicationsApplicationidScoring
-      description: Только EMPLOYEE. 409, если оценка еще не готова. Проверять доступ
-        сотрудника к заявке на сервере.
+      description: Только EMPLOYEE. 409, если оценка еще не готова. Проверять доступ сотрудника к заявке
+        на сервере.
       responses:
         '200':
           description: Успешно
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Scoring"
+                $ref: '#/components/schemas/Scoring'
         '400':
           description: Некорректный запрос
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '401':
           description: Требуется вход
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '403':
           description: Недостаточно прав
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '404':
           description: Объект не найден или недоступен
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '409':
           description: Конфликт версии, ключа идемпотентности или статуса
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '422':
           description: Данные не прошли проверку
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
       parameters:
       - name: applicationId
         in: path
@@ -1722,23 +1914,22 @@ paths:
           type: string
           minLength: 1
         description: ''
-  "/bank/applications/{applicationId}/decision":
+  /bank/applications/{applicationId}/decision:
     post:
       tags:
       - Банк
       summary: Завершить ручное рассмотрение
       operationId: postBankApplicationsApplicationidDecision
-      description: Только EMPLOYEE. Только MANUAL_CHECK. NEEDS_INFO требует непустой
-        requestedFields. APPROVED/ALTERNATIVE требуют непустые offers; REJECTED требует
-        пустые offers. Сервер проверяет условия продукта и публикует решение через
-        CHECKED; действия записываются в аудит.
+      description: EMPLOYEE; только MANUAL_CHECK. Для NEEDS_INFO передайте items или requestedFields.
+        Для APPROVED/ALTERNATIVE нужны offers. ID и платёж генерирует сервер; срок предложения по умолчанию
+        7 дней. REJECTED требует пустой offers.
       responses:
         '200':
           description: Успешно
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Application"
+                $ref: '#/components/schemas/Application'
           headers:
             ETag:
               description: Версия заявки в двойных кавычках
@@ -1750,37 +1941,37 @@ paths:
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '401':
           description: Требуется вход
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '403':
           description: Недостаточно прав
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '404':
           description: Объект не найден или недоступен
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '409':
           description: Конфликт версии, ключа идемпотентности или статуса
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '422':
           description: Данные не прошли проверку
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
       parameters:
       - name: applicationId
         in: path
@@ -1796,31 +1987,29 @@ paths:
           type: string
           minLength: 8
           maxLength: 128
-        description: Повтор с тем же ключом и телом возвращает исходный результат;
-          другое тело — 409. Хранение 24 часа в рамках пользователя и операции.
+        description: Повтор с тем же ключом и телом возвращает исходный результат; другое тело — 409.
+          Хранение 24 часа в рамках пользователя и операции.
       - name: If-Match
         in: header
         required: true
         schema:
           type: string
           example: '"3"'
-        description: Версия из ETag / Application.version в двойных кавычках. Устаревшая
-          версия — 409.
+        description: Версия из ETag / Application.version в двойных кавычках. Устаревшая версия — 409.
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              "$ref": "#/components/schemas/ManualDecision"
-  "/feed":
+              $ref: '#/components/schemas/ManualDecision'
+  /feed:
     get:
       tags:
       - Лента
       summary: Персонализированная лента внутри кабинета
       operationId: getFeed
-      description: Новости и следующие действия по компании и заявкам текущего клиента.
-        После изменения статуса состав ленты меняется; reason объясняет персонализацию.
-        Поле applicationId необязательно для общих новостей.
+      description: Лента последних 100 заявок текущего клиента и общая рекомендация для предпринимателей.
+        Обновляется по текущим статусам. Новости внешних источников не загружаются.
       responses:
         '200':
           description: Успешно
@@ -1829,43 +2018,411 @@ paths:
               schema:
                 type: array
                 items:
-                  "$ref": "#/components/schemas/FeedItem"
+                  $ref: '#/components/schemas/FeedItem'
         '400':
           description: Некорректный запрос
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '401':
           description: Требуется вход
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '403':
           description: Недостаточно прав
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '404':
           description: Объект не найден или недоступен
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '409':
           description: Конфликт версии, ключа идемпотентности или статуса
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
         '422':
           description: Данные не прошли проверку
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
+  /products/{productId}:
+    get:
+      tags:
+      - Подбор
+      summary: Карточка продукта
+      operationId: getProductsproductid
+      description: ''
+      parameters:
+      - name: productId
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Успешно
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+        '400':
+          description: Некорректный запрос
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Требуется вход
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Недостаточно прав
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Объект не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Конфликт версии или статуса
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Ошибка проверки данных
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /calculations:
+    post:
+      tags:
+      - Подбор
+      summary: Оценочный график платежей
+      operationId: postCalculations
+      description: ''
+      parameters:
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 8
+          maxLength: 128
+      responses:
+        '200':
+          description: Успешно
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Calculation'
+        '400':
+          description: Некорректный запрос
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Требуется вход
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Недостаточно прав
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Объект не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Конфликт версии или статуса
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Ошибка проверки данных
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CalculationInput'
+  /applications/{applicationId}/information-requests:
+    get:
+      tags:
+      - Заявки
+      summary: Запросы дополнительных документов
+      operationId: getApplicationsapplicationidinformationrequests
+      description: ''
+      parameters:
+      - name: applicationId
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Успешно
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/InformationRequest'
+        '400':
+          description: Некорректный запрос
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Требуется вход
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Недостаточно прав
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Объект не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Конфликт версии или статуса
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Ошибка проверки данных
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /bank/applications/{applicationId}:
+    get:
+      tags:
+      - Банк
+      summary: Полная карточка для сотрудника
+      operationId: getBankapplicationsapplicationid
+      description: Только EMPLOYEE; включает внутренние проверки и снимки данных.
+      parameters:
+      - name: applicationId
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Успешно
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Overview'
+        '400':
+          description: Некорректный запрос
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Требуется вход
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Недостаточно прав
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Объект не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Конфликт версии или статуса
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Ошибка проверки данных
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /applications/{applicationId}/documents/{documentId}/download:
+    get:
+      tags:
+      - Документы
+      summary: Скачать документ
+      operationId: getApplicationsapplicationiddocumentsdocumentiddownload
+      description: ''
+      parameters:
+      - name: applicationId
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: documentId
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Файл
+          headers:
+            Content-Disposition:
+              schema:
+                type: string
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+            image/png:
+              schema:
+                type: string
+                format: binary
+            image/jpeg:
+              schema:
+                type: string
+                format: binary
+        '400':
+          description: Некорректный запрос
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Требуется вход
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Недостаточно прав
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Объект не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Конфликт версии или статуса
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Ошибка проверки данных
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /auth/register:
+    post:
+      tags:
+      - Вход
+      summary: Зарегистрировать клиента
+      operationId: postAuthRegister
+      description: 'Публичная регистрация по email без подтверждения почты в MVP. Создаёт только CLIENT;
+        выбор роли запрещён. Сохраняет bcrypt-хеш пароля и возвращает JWT на один час. Idempotency-Key
+        не требуется: повтор email возвращает 409. Ограничение: 20 попыток в минуту на IP, отдельно от
+        входа.'
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegistrationInput'
+      responses:
+        '201':
+          description: Клиент создан, сессия открыта
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegistrationSession'
+        '400':
+          description: Некорректный JSON или неизвестное поле, включая role
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Email уже зарегистрирован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '413':
+          description: Тело запроса больше 8 КиБ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Некорректные email, имя или пароль
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: Превышена частота регистрации
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Внутренняя ошибка
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 components:
   securitySchemes:
     bearerAuth:
@@ -1980,7 +2537,7 @@ components:
       properties:
         inn:
           type: string
-          pattern: "^(\\d{10}|\\d{12})$"
+          pattern: ^(\d{10}|\d{12})$
           example: '7700000000'
         name:
           type: string
@@ -1988,18 +2545,59 @@ components:
         businessAgeMonths:
           type: integer
           minimum: 0
+          maximum: 2400
         monthlyRevenueMinor:
           type: integer
           minimum: 0
-          maximum: 100000000000
+          maximum: 10000000000000
         monthlyExpensesMinor:
           type: integer
           minimum: 0
-          maximum: 100000000000
+          maximum: 10000000000000
         monthlyDebtPaymentsMinor:
           type: integer
           minimum: 0
-          maximum: 100000000000
+          maximum: 10000000000000
+        kpp:
+          type: string
+        ogrn:
+          type: string
+        industry:
+          type: string
+        registeredAt:
+          type: string
+        representativeName:
+          type: string
+        representativePosition:
+          type: string
+        phone:
+          type: string
+        email:
+          type: string
+        annualRevenueMinor:
+          type: integer
+          format: int64
+          minimum: 0
+          maximum: 100000000000000
+        annualExpensesMinor:
+          type: integer
+          format: int64
+          minimum: 0
+          maximum: 100000000000000
+        outstandingDebtMinor:
+          type: integer
+          format: int64
+          minimum: 0
+          maximum: 100000000000000
+        cashFlowMinor:
+          type: integer
+          format: int64
+          minimum: -100000000000000
+          maximum: 100000000000000
+        hasOverdueDebt:
+          type: boolean
+        marketplaceSales:
+          type: boolean
       required:
       - inn
       - name
@@ -2015,7 +2613,7 @@ components:
           type: string
         inn:
           type: string
-          pattern: "^(\\d{10}|\\d{12})$"
+          pattern: ^(\d{10}|\d{12})$
           example: '7700000000'
         name:
           type: string
@@ -2023,18 +2621,19 @@ components:
         businessAgeMonths:
           type: integer
           minimum: 0
+          maximum: 2400
         monthlyRevenueMinor:
           type: integer
           minimum: 0
-          maximum: 100000000000
+          maximum: 10000000000000
         monthlyExpensesMinor:
           type: integer
           minimum: 0
-          maximum: 100000000000
+          maximum: 10000000000000
         monthlyDebtPaymentsMinor:
           type: integer
           minimum: 0
-          maximum: 100000000000
+          maximum: 10000000000000
         verificationStatus:
           type: string
           enum:
@@ -2043,6 +2642,50 @@ components:
           - FAILED
         verificationMessage:
           type: string
+        kpp:
+          type: string
+        ogrn:
+          type: string
+        industry:
+          type: string
+        registeredAt:
+          type: string
+        representativeName:
+          type: string
+        representativePosition:
+          type: string
+        phone:
+          type: string
+        email:
+          type: string
+        annualRevenueMinor:
+          type: integer
+          format: int64
+          minimum: 0
+          maximum: 100000000000000
+        annualExpensesMinor:
+          type: integer
+          format: int64
+          minimum: 0
+          maximum: 100000000000000
+        outstandingDebtMinor:
+          type: integer
+          format: int64
+          minimum: 0
+          maximum: 100000000000000
+        cashFlowMinor:
+          type: integer
+          format: int64
+          minimum: -100000000000000
+          maximum: 100000000000000
+        hasOverdueDebt:
+          type: boolean
+        marketplaceSales:
+          type: boolean
+        version:
+          type: integer
+          format: int64
+          minimum: 1
       required:
       - id
       - inn
@@ -2061,17 +2704,21 @@ components:
         amountMinor:
           type: integer
           minimum: 10000000
-          maximum: 5000000000
+          maximum: 50000000000
         termMonths:
           type: integer
           minimum: 1
-          maximum: 60
+          maximum: 180
         purpose:
           type: string
-          enum:
+          enum: &id001
           - WORKING_CAPITAL
-          - EQUIPMENT
           - BUSINESS_EXPANSION
+          - EQUIPMENT
+          - REAL_ESTATE
+          - REFINANCING
+          - SELLERS
+          - OTHER
         description:
           type: string
           maxLength: 2000
@@ -2092,10 +2739,7 @@ components:
           type: array
           items:
             type: string
-            enum:
-            - WORKING_CAPITAL
-            - EQUIPMENT
-            - BUSINESS_EXPANSION
+            enum: *id001
         minAmountMinor:
           type: integer
           minimum: 0
@@ -2118,6 +2762,16 @@ components:
           type: array
           items:
             type: string
+        description:
+          type: string
+        collateral:
+          type: string
+        paymentType:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
       required:
       - id
       - name
@@ -2133,13 +2787,23 @@ components:
       additionalProperties: false
       properties:
         product:
-          "$ref": "#/components/schemas/Product"
+          $ref: '#/components/schemas/Product'
         reason:
           type: string
         estimatedMonthlyPaymentMinor:
           type: integer
           minimum: 0
           maximum: 100000000000
+        availability:
+          type: string
+          enum:
+          - BEST_MATCH
+          - ALTERNATIVE
+          - UNAVAILABLE
+        rank:
+          type: integer
+          minimum: 1
+          maximum: 3
       required:
       - product
       - reason
@@ -2150,12 +2814,8 @@ components:
       properties:
         personalDataProcessing:
           type: boolean
-          enum:
-          - true
         creditHistoryCheck:
           type: boolean
-          enum:
-          - true
       required:
       - personalDataProcessing
       - creditHistoryCheck
@@ -2164,25 +2824,24 @@ components:
       additionalProperties: false
       properties:
         need:
-          "$ref": "#/components/schemas/Need"
+          $ref: '#/components/schemas/Need'
         productId:
           type: string
         consents:
-          "$ref": "#/components/schemas/Consent"
+          $ref: '#/components/schemas/Consent'
       required:
       - need
       - productId
-      - consents
     DraftPatch:
       type: object
       additionalProperties: false
       properties:
         need:
-          "$ref": "#/components/schemas/Need"
+          $ref: '#/components/schemas/Need'
         productId:
           type: string
         consents:
-          "$ref": "#/components/schemas/Consent"
+          $ref: '#/components/schemas/Consent'
     Application:
       type: object
       additionalProperties: false
@@ -2194,11 +2853,11 @@ components:
         productId:
           type: string
         need:
-          "$ref": "#/components/schemas/Need"
+          $ref: '#/components/schemas/Need'
         consents:
-          "$ref": "#/components/schemas/Consent"
+          $ref: '#/components/schemas/Consent'
         status:
-          "$ref": "#/components/schemas/Status"
+          $ref: '#/components/schemas/Status'
         version:
           type: integer
           minimum: 1
@@ -2214,6 +2873,16 @@ components:
           type: array
           items:
             type: string
+        number:
+          type: string
+        companyName:
+          type: string
+        inn:
+          type: string
+        productName:
+          type: string
+        recommendation:
+          type: string
       required:
       - id
       - companyId
@@ -2257,6 +2926,10 @@ components:
           - UPLOADED
           - VERIFIED
           - REJECTED
+        checksum:
+          type: string
+        requestItemId:
+          type: string
       required:
       - id
       - applicationId
@@ -2342,7 +3015,13 @@ components:
         checks:
           type: array
           items:
-            "$ref": "#/components/schemas/Check"
+            $ref: '#/components/schemas/Check'
+        recommendation:
+          type: string
+          enum:
+          - APPROVE
+          - MANUAL_REVIEW
+          - REJECT
       required:
       - score
       - riskLevel
@@ -2364,7 +3043,7 @@ components:
         termMonths:
           type: integer
           minimum: 1
-          maximum: 60
+          maximum: 180
         annualRateBps:
           type: integer
           minimum: 0
@@ -2376,6 +3055,8 @@ components:
         expiresAt:
           type: string
           format: date-time
+        collateral:
+          type: string
       required:
       - id
       - productId
@@ -2401,7 +3082,7 @@ components:
         offers:
           type: array
           items:
-            "$ref": "#/components/schemas/Offer"
+            $ref: '#/components/schemas/Offer'
         decidedAt:
           type: string
           format: date-time
@@ -2429,11 +3110,15 @@ components:
         offers:
           type: array
           items:
-            "$ref": "#/components/schemas/Offer"
+            $ref: '#/components/schemas/OfferInput'
         requestedFields:
           type: array
           items:
             type: string
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/InformationItemInput'
       required:
       - outcome
       - reason
@@ -2447,9 +3132,9 @@ components:
           type: string
           format: date-time
         fromStatus:
-          "$ref": "#/components/schemas/Status"
+          $ref: '#/components/schemas/Status'
         toStatus:
-          "$ref": "#/components/schemas/Status"
+          $ref: '#/components/schemas/Status'
         message:
           type: string
         actorRole:
@@ -2522,7 +3207,7 @@ components:
         items:
           type: array
           items:
-            "$ref": "#/components/schemas/Application"
+            $ref: '#/components/schemas/Application'
         offset:
           type: integer
           minimum: 0
@@ -2533,8 +3218,287 @@ components:
         total:
           type: integer
           minimum: 0
+        counts:
+          type: object
+          additionalProperties:
+            type: integer
+            format: int64
+            minimum: 0
       required:
       - items
       - offset
       - limit
       - total
+    RecommendationInput:
+      type: object
+      additionalProperties: false
+      properties:
+        companyId:
+          type: string
+        amountMinor:
+          type: integer
+          format: int64
+          minimum: 10000000
+          maximum: 50000000000
+        termMonths:
+          type: integer
+          minimum: 1
+          maximum: 180
+        purpose:
+          type: string
+          enum: *id001
+        collateral:
+          type: string
+          enum:
+          - NONE
+          - AVAILABLE
+          - LATER
+      required:
+      - companyId
+      - termMonths
+      - purpose
+    OfferInput:
+      type: object
+      additionalProperties: false
+      properties:
+        productId:
+          type: string
+        amountMinor:
+          type: integer
+          minimum: 0
+          maximum: 100000000000
+        termMonths:
+          type: integer
+          minimum: 1
+          maximum: 180
+        annualRateBps:
+          type: integer
+          minimum: 0
+          maximum: 10000
+        expiresAt:
+          type: string
+          format: date-time
+        collateral:
+          type: string
+      required:
+      - amountMinor
+      - termMonths
+      - annualRateBps
+    InformationItem:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        type:
+          type: string
+          enum:
+          - FINANCIAL_REPORT
+          - BANK_STATEMENT
+          - REGISTRATION
+          - OTHER
+        required:
+          type: boolean
+        status:
+          type: string
+          enum:
+          - PENDING
+          - FULFILLED
+      required:
+      - id
+      - title
+      - type
+      - required
+      - status
+    InformationItemInput:
+      type: object
+      additionalProperties: false
+      properties:
+        title:
+          type: string
+          minLength: 1
+        type:
+          type: string
+          enum:
+          - FINANCIAL_REPORT
+          - BANK_STATEMENT
+          - REGISTRATION
+          - OTHER
+        required:
+          type: boolean
+      required:
+      - title
+      - type
+      - required
+    InformationRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+        message:
+          type: string
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/InformationItem'
+        createdAt:
+          type: string
+          format: date-time
+      required:
+      - id
+      - message
+      - items
+      - createdAt
+    CalculationInput:
+      type: object
+      additionalProperties: false
+      properties:
+        productId:
+          type: string
+        amountMinor:
+          type: integer
+          format: int64
+          minimum: 10000000
+          maximum: 50000000000
+        termMonths:
+          type: integer
+          minimum: 1
+          maximum: 180
+      required:
+      - productId
+      - amountMinor
+      - termMonths
+    Payment:
+      type: object
+      additionalProperties: false
+      properties:
+        month:
+          type: integer
+        principalMinor:
+          type: integer
+          format: int64
+          minimum: 0
+        interestMinor:
+          type: integer
+          format: int64
+          minimum: 0
+        paymentMinor:
+          type: integer
+          format: int64
+          minimum: 0
+        balanceMinor:
+          type: integer
+          format: int64
+          minimum: 0
+      required:
+      - month
+      - principalMinor
+      - interestMinor
+      - paymentMinor
+      - balanceMinor
+    Calculation:
+      type: object
+      additionalProperties: false
+      properties:
+        monthlyPaymentMinor:
+          type: integer
+          format: int64
+          minimum: 0
+        totalPaymentMinor:
+          type: integer
+          format: int64
+          minimum: 0
+        overpaymentMinor:
+          type: integer
+          format: int64
+          minimum: 0
+        schedule:
+          type: array
+          items:
+            $ref: '#/components/schemas/Payment'
+        disclaimer:
+          type: string
+      required:
+      - monthlyPaymentMinor
+      - totalPaymentMinor
+      - overpaymentMinor
+      - schedule
+      - disclaimer
+    Overview:
+      type: object
+      additionalProperties: false
+      properties:
+        application:
+          $ref: '#/components/schemas/Application'
+        companySnapshot:
+          $ref: '#/components/schemas/Company'
+        productSnapshot:
+          $ref: '#/components/schemas/Product'
+        scoring:
+          $ref: '#/components/schemas/Scoring'
+        decision:
+          $ref: '#/components/schemas/Decision'
+        documents:
+          type: array
+          items:
+            $ref: '#/components/schemas/Document'
+        informationRequests:
+          type: array
+          items:
+            $ref: '#/components/schemas/InformationRequest'
+      required:
+      - application
+      - companySnapshot
+      - productSnapshot
+      - documents
+      - informationRequests
+    RegistrationInput:
+      type: object
+      additionalProperties: false
+      required:
+      - login
+      - displayName
+      - password
+      properties:
+        login:
+          type: string
+          format: email
+          maxLength: 254
+          example: new-client@example.com
+          description: Email; пробелы по краям удаляются, регистр не учитывается
+        displayName:
+          type: string
+          minLength: 2
+          maxLength: 100
+          example: Иван Иванов
+        password:
+          type: string
+          format: password
+          minLength: 12
+          maxLength: 72
+          description: Минимум 12 символов, максимум 72 байта UTF-8; пароль не обрезается
+    RegistrationSession:
+      type: object
+      additionalProperties: false
+      properties:
+        accessToken:
+          type: string
+        tokenType:
+          type: string
+          enum:
+          - Bearer
+        expiresIn:
+          type: integer
+          minimum: 1
+        role:
+          type: string
+          enum:
+          - CLIENT
+      required:
+      - accessToken
+      - tokenType
+      - expiresIn
+      - role
