@@ -1,6 +1,6 @@
+import { downloadDocument } from './api'
 import { useEffect, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
-import { defaultApplicant, defaultDocuments } from './types'
 import type { ApplicationStatus, LoanApplication } from './types'
 import { formatTerm, money, products, rateLabel } from './products'
 import { DocumentList, StatusBadge } from './Applications'
@@ -17,109 +17,22 @@ export type ReviewItem = {
   date?: string
   status?: ApplicationStatus
 }
-export const reviewItems: ReviewItem[] = [
-  {
-    id: 'XX-001234',
-    company: 'ООО «Лапочка»',
-    amount: 15_000_000,
-    score: 812,
-    recommendation: 'Одобрение',
-  },
-  {
-    id: 'CV-007839',
-    company: 'ООО «Строй Плюс»',
-    amount: 8_500_000,
-    score: 812,
-    recommendation: 'Одобрение',
-  },
-  {
-    id: 'SK-007821',
-    company: 'ЗАО «ТехноСервис»',
-    amount: 25_000_000,
-    score: 601,
-    recommendation: 'Ручная проверка',
-  },
-  {
-    id: 'CC-007818',
-    company: 'ООО «РегионСтрой»',
-    amount: 40_000_000,
-    score: 601,
-    recommendation: 'Ручная проверка',
-  },
-  {
-    id: 'KS-007810',
-    company: 'ООО «ТД Вектор»',
-    amount: 6_000_000,
-    score: 601,
-    recommendation: 'Ручная проверка',
-  },
-  {
-    id: 'SK-007804',
-    company: 'ООО «МедСнаб»',
-    amount: 12_000_000,
-    score: 601,
-    recommendation: 'Ручная проверка',
-  },
-  {
-    id: 'KD-007798',
-    company: 'ООО «Агро-Лэнд»',
-    amount: 20_000_000,
-    score: 601,
-    recommendation: 'Ручная проверка',
-  },
-  {
-    id: 'KS-7791',
-    company: 'ООО «Сити Логистик»',
-    amount: 5_000_000,
-    score: 329,
-    recommendation: 'Отказать',
-  },
-  {
-    id: 'QJ-7786',
-    company: 'ООО «Инвест Групп»',
-    amount: 30_000_000,
-    score: 601,
-    recommendation: 'Ручная проверка',
-  },
-  {
-    id: 'NF-7780',
-    company: 'ООО «ФудМаркет»',
-    amount: 10_000_000,
-    score: 812,
-    recommendation: 'Одобрение',
-  },
-]
 export function getReviewItems(applications: LoanApplication[]): ReviewItem[] {
-  const saved = new Map(applications.map((application) => [application.id, application]))
-  const sourceIds = new Set(reviewItems.map((item) => item.id))
-  const clientExamples = new Set(['XX-000123', 'BD-000122', 'CC-000121', 'MM-000120'])
-  function merge(item: ReviewItem): ReviewItem {
-    const application = saved.get(item.id)
-    return application
-      ? {
-          ...item,
-          company: application.applicant.company,
-          amount: application.amount,
-          inn: application.applicant.inn,
-          date: application.date,
-          status: application.status,
-          recommendation:
-            application.status === 'На рассмотрении' ? item.recommendation : application.status,
-        }
-      : item
-  }
-  const created = applications
-    .filter((application) => !sourceIds.has(application.id) && !clientExamples.has(application.id))
-    .map((application) =>
-      merge({
-        id: application.id,
-        company: application.applicant.company,
-        amount: application.amount,
-        score: 812,
-        recommendation: 'Одобрение',
-      }),
-    )
-  return [...created, ...reviewItems.map(merge)]
+  return applications.map((application) => ({
+    id: application.id,
+    company: application.applicant.company,
+    amount: application.amount,
+    score: application.scoring?.score ?? 0,
+    inn: application.applicant.inn,
+    date: application.date,
+    status: application.status,
+    recommendation:
+      application.scoring?.recommendation === 'APPROVE'
+        ? 'Одобрение'
+        : application.scoring?.recommendation === 'REJECT'
+          ? 'Отказать'
+          : 'Ручная проверка',
+  }))
 }
 export function SpecialistList({
   onOpen,
@@ -166,7 +79,7 @@ export function SpecialistList({
   ]
   const rows = items.filter(
     (item) =>
-      `${item.id} ${item.company} ${item.inn ?? '7701234567'}`
+      `${item.id} ${item.company} ${item.inn ?? ''}`
         .toLowerCase()
         .includes(query.trim().toLowerCase()) &&
       (filter === 'Все' || item.recommendation === filter),
@@ -235,14 +148,14 @@ export function SpecialistList({
                 </td>
                 <td>
                   {item.company}
-                  <small>ИНН {item.inn ?? '7701234567'}</small>
+                  <small>ИНН {item.inn ?? ''}</small>
                 </td>
                 <td>
                   <strong>{money(item.amount)} ₽</strong>
                 </td>
                 <td>
                   <span
-                    className={`recommendation-pill recommendation-${item.status === 'Отклонено' ? 'red' : item.status === 'Одобрено' ? 'green' : item.score >= 750 ? 'green' : item.score >= 500 ? 'yellow' : 'red'}`}
+                    className={`recommendation-pill recommendation-${item.status === 'Отклонено' ? 'red' : item.status === 'Одобрено' ? 'green' : item.score >= 700 ? 'green' : item.score >= 500 ? 'yellow' : 'red'}`}
                   >
                     {item.recommendation}
                   </span>
@@ -285,25 +198,29 @@ export function Review({
   onSave,
 }: {
   item: ReviewItem
-  application?: LoanApplication
+  application: LoanApplication
   onBack: () => void
-  onSave: (application: LoanApplication) => void
+  onSave: (application: LoanApplication) => Promise<void>
 }) {
   const [tab, setTab] = useState('Обзор')
   const [showScores, setShowScores] = useState(false)
   const [action, setAction] = useState<'approve' | 'reject' | 'terms' | 'request' | null>(null)
   const [saved, setSaved] = useState('')
-  const [productId, setProductId] = useState(application?.alternative?.productId ?? 'overdraft')
-  const [amount, setAmount] = useState(application?.alternative?.amount ?? 10_000_000)
+  const [pending, setPending] = useState(false)
+  const [saveError, setSaveError] = useState('')
+  const [productId, setProductId] = useState(
+    application.alternative?.productId ?? application.productId,
+  )
+  const [amount, setAmount] = useState(application.alternative?.amount ?? application.amount)
   const [months, setMonths] = useState(
     Math.min(
-      application?.alternative?.months ?? 48,
+      application.alternative?.months ?? application.months,
       products.find(
-        (product) => product.id === (application?.alternative?.productId ?? 'overdraft'),
+        (product) => product.id === (application.alternative?.productId ?? application.productId),
       )!.months,
     ),
   )
-  const [rate, setRate] = useState(application?.alternative?.rate ?? 19)
+  const [rate, setRate] = useState(application.alternative?.rate ?? application.rate)
   const [collateral, setCollateral] = useState(
     application?.alternative?.collateral ?? 'Без изменения',
   )
@@ -311,20 +228,10 @@ export function Review({
   const [requested, setRequested] = useState<string[]>([])
   const [otherDocument, setOtherDocument] = useState('')
   const [requestError, setRequestError] = useState('')
-  const value: LoanApplication = application ?? {
-    id: item.id,
-    productId: 'credit-line',
-    amount: item.amount,
-    months: 48,
-    rate: 14.5,
-    date: '2026-10-21T14:32:00+03:00',
-    status: 'На рассмотрении',
-    applicant: { ...defaultApplicant, company: item.company },
-    documents: defaultDocuments,
-  }
-  const tone = item.score >= 750 ? 'green' : item.score >= 500 ? 'yellow' : 'red'
+  const value = application
+  const tone = item.score >= 700 ? 'green' : item.score >= 500 ? 'yellow' : 'red'
   const profile = value.companyProfile ?? {
-    registrationStatus: 'Действующая',
+    registrationStatus: 'Нет данных',
     director: value.applicant.name,
     founders: [value.applicant.name],
     okved: ['47.91 — Розничная торговля по почте или через интернет'],
@@ -333,7 +240,7 @@ export function Review({
     activeLoans: true,
   }
   const reportName =
-    value.documentFiles?.['annual-report'] ??
+    value.documentFiles?.FINANCIAL_REPORT ??
     value.documents.find((name) => /отч[её]т|бухгалтер|финанс/i.test(name))
   const answer = (value: boolean | null) => (value === null ? 'Нет данных' : value ? 'Да' : 'Нет')
   const offeredProduct = products.find((product) => product.id === productId)!
@@ -352,34 +259,43 @@ export function Review({
       Math.max(creditDetails[next.id].minMonths, Math.min(current, next.months)),
     )
   }
-  function save(status: LoanApplication['status']) {
-    onSave({
-      ...value,
-      status,
-      ...(status === 'Запрошены данные'
-        ? {
-            documentRequest: {
-              items: requested,
-              other: requested.includes('other') ? otherDocument.trim() : '',
-              requestedAt: new Date().toISOString(),
-            },
-          }
-        : {}),
-      ...(status === 'Другие условия'
-        ? {
-            alternative: {
-              productId,
-              amount,
-              months,
-              rate,
-              collateral: collateral === 'Без изменения' ? 'Без залога' : collateral,
-              comment,
-            },
-          }
-        : {}),
-    })
-    setSaved(status)
-    setAction(null)
+  async function save(status: LoanApplication['status']) {
+    if (pending) return
+    setPending(true)
+    setSaveError('')
+    try {
+      await onSave({
+        ...value,
+        status,
+        ...(status === 'Запрошены данные'
+          ? {
+              documentRequest: {
+                items: requested,
+                other: requested.includes('other') ? otherDocument.trim() : '',
+                requestedAt: new Date().toISOString(),
+              },
+            }
+          : {}),
+        ...(status === 'Другие условия'
+          ? {
+              alternative: {
+                productId,
+                amount,
+                months,
+                rate,
+                collateral: collateral === 'Без изменения' ? 'Без залога' : collateral,
+                comment,
+              },
+            }
+          : {}),
+      })
+      setSaved(status)
+      setAction(null)
+    } catch (error) {
+      setSaveError(error instanceof Error ? error.message : 'Не удалось сохранить решение')
+    } finally {
+      setPending(false)
+    }
   }
   function terms(event: FormEvent) {
     event.preventDefault()
@@ -403,6 +319,18 @@ export function Review({
       <button className="back-button" type="button" onClick={onBack}>
         ← &nbsp; К списку заявок
       </button>
+      {saveError && (
+        <p role="alert" className="error-text">
+          {saveError}
+        </p>
+      )}
+      {pending && <p role="status">Сохраняем решение…</p>}
+      {value.backendStatus !== 'MANUAL_CHECK' && (
+        <p role="status">
+          Решение доступно только для заявки на ручной проверке. Текущий статус:{' '}
+          {value.backendStatus}
+        </p>
+      )}
       <section className="review-card">
         <header className="review-card-header">
           <p className="review-breadcrumb">Заявки &nbsp; › &nbsp; {item.id}</p>
@@ -424,7 +352,7 @@ export function Review({
             </span>
             <div>
               <strong>{value.applicant.company}</strong>
-              <p>ИНН {value.applicant.inn} · ОГРН 1187746123456</p>
+              <p>ИНН {value.applicant.inn}</p>
               <p>Дата регистрации: {value.applicant.registered.split('-').reverse().join('.')}</p>
             </div>
           </div>
@@ -472,19 +400,10 @@ export function Review({
                 </div>
                 {showScores && (
                   <div className="scoring-popover">
-                    {[
-                      ['Финансовая устойчивость', 85],
-                      ['Кредитная история', 78],
-                      ['Отраслевая оценка', 82],
-                      ['Деловая репутация', 76],
-                      ['Обеспечение', 80],
-                    ].map(([label, number]) => (
-                      <div key={label}>
-                        <span>{label}</span>
-                        <meter value={Number(number)} min="0" max="100" />
-                        <span>{number}</span>
-                      </div>
+                    {(value.scoring?.factors || []).map((factor) => (
+                      <p key={factor}>{factor}</p>
                     ))}
+                    <p>Модель: {value.scoring?.modelVersion || 'Результат ещё не получен'}</p>
                   </div>
                 )}
               </section>
@@ -505,7 +424,7 @@ export function Review({
                         ? 'Система не оценила заявку как низкорисковую. Рекомендуется проверить данные и принять решение.'
                         : 'Система оценила заявку как рисковую. Рекомендуется проверить данные и принять решение об отмене или альтернативных условиях.'}
                   </p>
-                  {tone === 'green' && (
+                  {tone === 'green' && value.backendStatus === 'MANUAL_CHECK' && (
                     <button
                       className="button-primary"
                       type="button"
@@ -524,20 +443,27 @@ export function Review({
                 <dl>
                   {[
                     ['Запрашиваемая сумма', `${money(value.amount)} ₽`],
-                    ['Залог', 'Не требуется'],
-                    ['Срок', formatTerm(value.months)],
                     [
-                      'Ставка',
-                      `${rateLabel(value.rate)}${value.productId === 'sellers' ? ' в месяц' : ''}`,
+                      'Залог',
+                      products.find((item) => item.id === value.productId)?.secured
+                        ? 'Требуется'
+                        : 'Не требуется',
                     ],
+                    ['Срок', formatTerm(value.months)],
+                    ['Ставка', `${rateLabel(value.rate)}`],
                     ['Цель кредита', 'Пополнение оборотных средств'],
-                    ['Тип лимита', 'Возобновляемый'],
+                    [
+                      'Тип лимита',
+                      products.find((item) => item.id === value.productId)?.limit
+                        ? 'Возобновляемый'
+                        : 'Разовый',
+                    ],
                     [
                       'Продукт',
                       products.find((product) => product.id === value.productId)?.name ||
                         'Кредитная линия',
                     ],
-                    ['Регион', 'г. Москва'],
+                    ['Регион', 'Нет данных'],
                   ].map(([label, text]) => (
                     <div key={label}>
                       <dt>{label}</dt>
@@ -553,6 +479,9 @@ export function Review({
               <h2 className="review-section-title">Финансы компании</h2>
               <dl>
                 {[
+                  ['Выручка в месяц', `${money(value.financials?.revenue || 0)} ₽`],
+                  ['Расходы в месяц', `${money(value.financials?.expenses || 0)} ₽`],
+                  ['Платежи по кредитам в месяц', `${money(value.financials?.debts || 0)} ₽`],
                   ['Годовая отчётность', reportName ?? 'Не предоставлена'],
                   ['Проходит процедуру банкротства', answer(profile.bankruptcy)],
                   [
@@ -604,10 +533,20 @@ export function Review({
           {tab === 'Документы' && (
             <>
               <h2 className="review-section-title">Документы</h2>
-              <DocumentList documents={value.documents} />
+              <DocumentList
+                documents={value.documents}
+                onDownload={(index) => {
+                  const doc = value.apiDocuments?.[index]
+                  if (doc)
+                    void downloadDocument(value.id, doc).catch((error) =>
+                      setSaveError(error.message),
+                    )
+                }}
+              />
             </>
           )}
           {tab === 'Решение' &&
+            value.backendStatus === 'MANUAL_CHECK' &&
             (action === 'request' ? (
               <form className="document-request-form" onSubmit={sendRequest}>
                 <h2>Запрос дополнительных данных</h2>

@@ -1,37 +1,31 @@
 import { defineConfig } from '@playwright/test'
 
-const preview = process.env.PLAYWRIGHT_PREVIEW === '1'
-const port = preview ? 4173 : 5173
-const baseURL = `http://127.0.0.1:${port}`
+const external = process.env.FRONTEND_URL
+const baseURL = external || 'http://127.0.0.1:5173'
 
 export default defineConfig({
-  testDir: './tests',
-  fullyParallel: true,
-  workers: 2,
-  timeout: 30_000,
+  testDir: './tests/integration',
+  fullyParallel: false,
+  workers: 1,
+  timeout: 60_000,
+  expect: { timeout: 15_000 },
   reporter: [['list'], ['html', { open: 'never' }]],
   use: {
     baseURL,
     headless: true,
-    viewport: { width: 1672, height: 1016 },
+    viewport: { width: 1440, height: 1000 },
     screenshot: 'only-on-failure',
     trace: 'retain-on-failure',
+    launchOptions: { executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE },
   },
-  projects: [
-    {
-      name: 'edge',
-      use: {
-        browserName: 'chromium',
-        channel: 'msedge',
-        launchOptions: { args: ['--disable-gpu'] },
-      },
-    },
-    { name: 'firefox', use: { browserName: 'firefox' } },
-    { name: 'webkit', use: { browserName: 'webkit' } },
-  ],
-  webServer: {
-    command: `npm run ${preview ? 'preview' : 'dev'} -- --port ${port} --strictPort`,
-    url: baseURL,
-    reuseExistingServer: !process.env.CI,
-  },
+  projects: [{ name: 'chromium', use: { browserName: 'chromium' } }],
+  ...(external
+    ? {}
+    : {
+        webServer: {
+          command: 'npm run dev -- --port 5173 --strictPort',
+          url: baseURL,
+          reuseExistingServer: !process.env.CI,
+        },
+      }),
 })

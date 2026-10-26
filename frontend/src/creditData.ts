@@ -1,5 +1,3 @@
-// Source: the user-provided «альфа хакатон.pdf», product table, page 1.
-// The catalog keeps its eight product families; conditional variants are described explicitly.
 export type DocumentRequirement = {
   id: string
   title: string
@@ -267,9 +265,8 @@ export function requirementsFor(productId: string, registration = '', hasLoans =
 }
 
 export function fileValidationError(file: File) {
-  if (!/\.(pdf|docx?|xlsx?|png|jpe?g)$/i.test(file.name))
-    return 'Поддерживаются PDF, Word, Excel, PNG и JPEG.'
+  if (!/\.(pdf|png|jpe?g)$/i.test(file.name)) return 'Поддерживаются PDF, PNG и JPEG.'
   if (!file.size) return 'Нельзя прикрепить пустой файл.'
-  if (file.size > 20 * 1024 * 1024) return 'Размер файла не должен превышать 20 МБ.'
+  if (file.size > 10 * 1024 * 1024) return 'Размер файла не должен превышать 10 МБ.'
   return ''
 }

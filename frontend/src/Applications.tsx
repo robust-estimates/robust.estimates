@@ -1,4 +1,7 @@
-import { useRef, useState } from 'react'
+import { FinancialFields } from './FinancialFields'
+import type { ApiCompany } from './api'
+import { downloadDocument, useCalculation, request } from './api'
+import { useEffect, useRef, useState } from 'react'
 import type { ChangeEvent, FormEvent } from 'react'
 import { formatTerm, loanFigures, money, products, quoteForProduct, rateLabel } from './products'
 import type { Product } from './products'
@@ -22,18 +25,19 @@ export function Indicators({
   months: number
   showProduct?: boolean
 }) {
-  const figures = loanFigures(amount, rate, months, product.id === 'sellers')
+  const calculation = useCalculation(product.id, amount, months, rate === product.rate)
+  const figures = calculation ?? loanFigures(amount, rate, months)
   const rows = [
     ...(showProduct ? [['Вид кредита', product.name]] : []),
     ['Сумма кредита', `${money(amount)} ₽`],
     ['Срок', formatTerm(months)],
-    ['Ставка', `${rateLabel(rate)}${product.id === 'sellers' ? ' в месяц' : ''}`],
+    ['Ставка', `${rateLabel(rate)}`],
     ['Сумма выплат', `${money(figures.total)} ₽`],
     ['Переплата', `${money(figures.overpayment)} ₽`],
     ['Ежемесячный платеж', `${money(figures.monthly)} ₽`],
   ]
   return (
-    <dl className="indicators">
+    <dl className="indicators" aria-label={calculation?.disclaimer || 'Предварительный расчёт'}>
       {rows.map(([label, value]) => (
         <div key={label}>
           <dt>{label}</dt>
@@ -132,26 +136,28 @@ export function DocumentList({
   documents,
   onRemove,
   onAdd,
+  onDownload,
 }: {
   documents: string[]
   onRemove?: (index: number) => void
   onAdd?: (files: string[]) => void
+  onDownload?: (index: number) => void
 }) {
   const input = useRef<HTMLInputElement>(null)
   const [message, setMessage] = useState('')
   function files(event: ChangeEvent<HTMLInputElement>) {
     const selected = Array.from(event.target.files ?? [])
     event.target.value = ''
-    if (selected.some((file) => !/\.(pdf|docx?|xlsx?|png|jpe?g)$/i.test(file.name))) {
-      setMessage('Поддерживаются PDF, Word, Excel, PNG и JPEG.')
+    if (selected.some((file) => !/\.(pdf|png|jpe?g)$/i.test(file.name))) {
+      setMessage('Поддерживаются PDF, PNG и JPEG.')
       return
     }
     if (selected.some((file) => !file.size)) {
       setMessage('Нельзя прикрепить пустой файл.')
       return
     }
-    if (selected.some((file) => file.size > 20 * 1024 * 1024)) {
-      setMessage('Размер файла не должен превышать 20 МБ.')
+    if (selected.some((file) => file.size > 10 * 1024 * 1024)) {
+      setMessage('Размер файла не должен превышать 10 МБ.')
       return
     }
     setMessage('')
@@ -166,6 +172,11 @@ export function DocumentList({
               <Icon name="doc" />
             </span>
             <span>{name}</span>
+            {onDownload && (
+              <button type="button" className="text-button" onClick={() => onDownload(index)}>
+                Скачать
+              </button>
+            )}
             {onRemove && (
               <button
                 type="button"
@@ -187,7 +198,7 @@ export function DocumentList({
             type="file"
             aria-label="Прикрепить документы"
             multiple
-            accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg"
+            accept=".pdf,.png,.jpg,.jpeg"
             onChange={files}
             tabIndex={-1}
           />
@@ -214,6 +225,8 @@ export function ApplicationForm({
   amount,
   months,
   existing,
+  initialCompany,
+  initialPurpose,
   registration,
   hasLoans,
   onCancel,
@@ -224,12 +237,27 @@ export function ApplicationForm({
   amount: number
   months: number
   existing?: LoanApplication
+  initialCompany?: ApiCompany
+  initialPurpose?: string
   registration: string
   hasLoans: boolean
   onCancel: () => void
   onChangeParameters: (amount: number, months: number) => void
-  onSubmit: (value: Omit<LoanApplication, 'id' | 'date' | 'status'>) => void
+  onSubmit: (value: Omit<LoanApplication, 'id' | 'date' | 'status'>) => Promise<void>
 }) {
+  const supportedPurposes = product.purposes ?? ['OTHER']
+  const [purposeCode, setPurposeCode] = useState(
+    existing?.purposeCode || initialPurpose || supportedPurposes[0],
+  )
+  const purposeLabels: Record<string, string> = {
+    WORKING_CAPITAL: 'Пополнение оборотных средств',
+    BUSINESS_EXPANSION: 'Развитие бизнеса',
+    EQUIPMENT: 'Покупка оборудования',
+    REAL_ESTATE: 'Покупка недвижимости',
+    REFINANCING: 'Рефинансирование',
+    SELLERS: 'Для селлеров',
+    OTHER: 'Другое',
+  }
   const editing = !!existing
   const request = existing?.status === 'Запрошены данные' ? existing.documentRequest : undefined
   const draftKey = `alfa-credit-form-${existing?.id ?? product.id}${request ? `-${request.requestedAt}` : ''}`
@@ -238,7 +266,19 @@ export function ApplicationForm({
   const [draft, setDraft] = useSessionValue(
     draftKey,
     {
-      applicant: existing?.applicant ?? defaultApplicant,
+      applicant:
+        existing?.applicant ??
+        (initialCompany
+          ? {
+              company: initialCompany.name,
+              inn: initialCompany.inn,
+              registered: initialCompany.registeredAt || '',
+              name: initialCompany.representativeName || '',
+              position: initialCompany.representativePosition || '',
+              phone: initialCompany.phone || '',
+              email: initialCompany.email || '',
+            }
+          : defaultApplicant),
       documents: existing?.documents ?? [],
       documentFiles: initialFiles,
       amount,
@@ -268,7 +308,7 @@ export function ApplicationForm({
     product.id,
     registration,
     hasLoans,
-  ).map((item) => ({ ...item, required: editing ? false : item.required }))
+  ).map((item) => ({ ...item }))
   for (const id of request?.items ?? []) {
     const found = documentRequirements.find((item) => item.id === id)
     if (found) found.required = true
@@ -278,21 +318,33 @@ export function ApplicationForm({
         title:
           id === 'other'
             ? request!.other
-            : (requestOptions.find((option) => option.id === id)?.title ?? id),
+            : (existing?.information?.items.find((item) => item.id === id)?.title ??
+              requestOptions.find((option) => option.id === id)?.title ??
+              id),
         required: true,
         description: 'Запрошено кредитным специалистом.',
       })
   }
+  const [financials, setFinancials] = useState(
+    existing?.financials ?? {
+      revenue: (initialCompany?.monthlyRevenueMinor || 0) / 100,
+      expenses: (initialCompany?.monthlyExpensesMinor || 0) / 100,
+      debts: (initialCompany?.monthlyDebtPaymentsMinor || 0) / 100,
+      overdue: initialCompany?.hasOverdueDebt || false,
+    },
+  )
+  const [pending, setPending] = useState(false)
+  const [saveError, setSaveError] = useState('')
   const [consent, setConsent] = useState(false)
   const [documentError, setDocumentError] = useState(false)
-  const rate =
-    existing?.productId === product.id
-      ? existing.rate
-      : product.id === 'business'
-        ? 19
-        : product.rate
-  function submit(event: FormEvent) {
+  const rate = existing?.productId === product.id ? existing.rate : product.rate
+  async function submit(event: FormEvent) {
     event.preventDefault()
+    if (pending) return
+    if (!supportedPurposes.includes(purposeCode)) {
+      setSaveError('Выберите доступную цель кредита для этого продукта')
+      return
+    }
     const incomplete = documentRequirements.some((item) => item.required && !files[item.id])
     setDocumentError(incomplete)
     if (incomplete) {
@@ -311,33 +363,43 @@ export function ApplicationForm({
         ...Object.values(files),
       ]),
     ]
-    onSubmit({
-      productId: product.id,
-      amount: parameters.amount,
-      months: parameters.months,
-      rate,
-      applicant,
-      documents,
-      documentFiles: files,
-      companyProfile: existing?.companyProfile ?? {
-        registrationStatus: 'Не проверено',
-        director: applicant.name,
-        founders: [],
-        okved: [],
-        bankruptcy: null,
-        convictions: null,
-        activeLoans: hasLoans,
-      },
-      ...(existing?.documentRequest
-        ? {
-            documentRequest: {
-              ...existing.documentRequest,
-              ...(request ? { fulfilledAt: new Date().toISOString() } : {}),
-            },
-          }
-        : {}),
-    })
-    clearSessionValue(draftKey)
+    setPending(true)
+    setSaveError('')
+    try {
+      await onSubmit({
+        financials,
+        purposeCode,
+        productId: product.id,
+        amount: parameters.amount,
+        months: parameters.months,
+        rate,
+        applicant,
+        documents,
+        documentFiles: files,
+        companyProfile: existing?.companyProfile ?? {
+          registrationStatus: 'Не проверено',
+          director: applicant.name,
+          founders: [],
+          okved: [],
+          bankruptcy: null,
+          convictions: null,
+          activeLoans: hasLoans,
+        },
+        ...(existing?.documentRequest
+          ? {
+              documentRequest: {
+                ...existing.documentRequest,
+                ...(request ? { fulfilledAt: new Date().toISOString() } : {}),
+              },
+            }
+          : {}),
+      })
+      clearSessionValue(draftKey)
+    } catch (error) {
+      setSaveError(error instanceof Error ? error.message : 'Не удалось сохранить заявку')
+    } finally {
+      setPending(false)
+    }
   }
   return (
     <main className="application-form-page">
@@ -354,7 +416,14 @@ export function ApplicationForm({
         )}
       </p>
       <form className="application-form" onSubmit={submit}>
+        {saveError && (
+          <p role="alert" className="error-text">
+            {saveError}
+          </p>
+        )}
+        {pending && <p role="status">Сохраняем заявку и документы…</p>}
         <div className="application-applicant">
+          <FinancialFields value={financials} onChange={setFinancials} disabled={pending} />
           <ApplicantFields
             value={applicant}
             onChange={(value) => setDraft((current) => ({ ...current, applicant: value }))}
@@ -367,12 +436,35 @@ export function ApplicationForm({
                 onChange={(event) => setConsent(event.target.checked)}
                 required
               />
-              Согласие на обработку персональных данных*
+              <span>Согласие на обработку персональных данных и проверку кредитной истории*</span>
             </label>
           )}
           <p className="required-note">* - поля, обязательные для заполнения</p>
         </div>
         <div className="application-summary">
+          <label className="field application-purpose">
+            Цель кредита
+            <select
+              aria-label="Цель кредита"
+              required
+              value={purposeCode}
+              onChange={(event) => setPurposeCode(event.target.value)}
+            >
+              {!supportedPurposes.includes(purposeCode) && (
+                <option value="">Выберите доступную цель</option>
+              )}
+              {!supportedPurposes.includes(purposeCode) && (
+                <option value={purposeCode} disabled>
+                  {purposeLabels[purposeCode] || purposeCode} — недоступно для продукта
+                </option>
+              )}
+              {supportedPurposes.map((code) => (
+                <option key={code} value={code}>
+                  {purposeLabels[code] || code}
+                </option>
+              ))}
+            </select>
+          </label>
           <h2>Выбранный продукт</h2>
           <div className="selected-product">
             <div className={`product-icon ${product.color}`}>
@@ -485,7 +577,7 @@ export function ApplicationAccepted({
       <h1>Заявка отправлена!</h1>
       <div className="accepted-number">
         <p>Номер заявки</p>
-        <strong>№ {application.id}</strong>
+        <strong>№ {application.number || application.id}</strong>
       </div>
       <div className="accepted-info">
         <h2>Что дальше?</h2>
@@ -546,7 +638,7 @@ export function ApplicationsList({
   const filtered = applications.filter(
     (application) =>
       (status === 'Все заявки' || application.status === status) &&
-      `${application.id} ${products.find((product) => product.id === application.productId)?.name}`
+      `${application.number || application.id} ${products.find((product) => product.id === application.productId)?.name}`
         .toLowerCase()
         .includes(query.trim().toLowerCase()),
   )
@@ -588,11 +680,11 @@ export function ApplicationsList({
           <button
             className="application-row"
             type="button"
-            key={application.id}
+            key={application.number || application.id}
             onClick={() => onOpen(application)}
           >
             <span className="application-row-title">
-              <strong>№ {application.id}</strong>
+              <strong>№ {application.number || application.id}</strong>
               <span>{products.find((product) => product.id === application.productId)?.name}</span>
               <small>{formatDate(application.date)}</small>
             </span>
@@ -605,6 +697,7 @@ export function ApplicationsList({
               {formatTerm(application.months)}
             </span>
             <StatusBadge status={application.status} />
+            {application.status === 'Выдано' && <p>Кредит выдан в демонстрационном режиме</p>}
             <span className="row-arrow" aria-hidden="true">
               ›
             </span>
@@ -643,12 +736,24 @@ export function ApplicationDetail({
   onBack: () => void
   onEdit: () => void
   onNew: () => void
-  onUpdate: (application: LoanApplication) => void
+  onUpdate: (application: LoanApplication) => Promise<void>
 }) {
   const [terms, setTerms] = useState(false)
   const [signed, setSigned] = useState(false)
+  const [actionError, setActionError] = useState('')
+  const [actionPending, setActionPending] = useState(false)
   const product = products.find((item) => item.id === application.productId) ?? products[0]
-  const complete = !['На рассмотрении', 'Черновик', 'Запрошены данные'].includes(application.status)
+  const [history, setHistory] = useState<{ id: string; at: string; message: string }[]>([])
+  useEffect(() => {
+    const controller = new AbortController()
+    void request<{ id: string; at: string; message: string }[]>(
+      `/applications/${application.id}/history`,
+      { signal: controller.signal },
+    )
+      .then(setHistory)
+      .catch(() => {})
+    return () => controller.abort()
+  }, [application.id, application.version])
   const alternative = application.alternative ?? {
     productId: 'credit-line',
     amount: 10_000_000,
@@ -665,24 +770,19 @@ export function ApplicationDetail({
       <section className="application-detail">
         <div className="application-detail-main">
           <div className="application-detail-heading">
-            <h1>Заявка № {application.id}</h1>
+            <h1>Заявка № {application.number || application.id}</h1>
             <StatusBadge status={application.status} />
+            {application.status === 'Выдано' && <p>Кредит выдан в демонстрационном режиме</p>}
           </div>
           <p className="application-detail-date">от {formatDate(application.date)}</p>
           <ol className="application-timeline">
-            {[
-              'Заявка создана',
-              'Данные получены',
-              'Проверка компании',
-              'Рассмотрение банком',
-              'Решение банка',
-            ].map((step, index) => (
-              <li
-                key={step}
-                className={index < 3 || complete ? 'done' : index === 3 ? 'current' : ''}
-              >
-                <span>{index < 3 || complete ? '✓' : index + 1}</span>
-                <p>{step}</p>
+            {history.slice(-6).map((event) => (
+              <li key={event.id} className="done">
+                <span>✓</span>
+                <p>
+                  {event.message}
+                  <small>{formatDate(event.at)}</small>
+                </p>
               </li>
             ))}
           </ol>
@@ -691,8 +791,22 @@ export function ApplicationDetail({
           </div>
         </div>
         <aside className="application-detail-aside">
+          {actionError && (
+            <p role="alert" className="error-text">
+              {actionError}
+            </p>
+          )}
           <h2>Документы</h2>
-          <DocumentList documents={application.documents} />
+          <DocumentList
+            documents={application.documents}
+            onDownload={(index) => {
+              const document = application.apiDocuments?.[index]
+              if (document)
+                void downloadDocument(application.id, document).catch((error) =>
+                  setActionError(error.message),
+                )
+            }}
+          />
           <h2>Показатели</h2>
           <Indicators
             product={product}
@@ -701,7 +815,7 @@ export function ApplicationDetail({
             months={application.months}
             showProduct
           />
-          {application.status === 'Одобрено' ? (
+          {['Одобрено', 'Принято'].includes(application.status) ? (
             <div className="decision-callout decision-approved">
               <h3>✓ &nbsp; Кредит одобрен</h3>
               <button
@@ -749,7 +863,9 @@ export function ApplicationDetail({
                   <li key={id}>
                     {id === 'other'
                       ? application.documentRequest!.other
-                      : requestOptions.find((option) => option.id === id)?.title}
+                      : application.information?.items.find((item) => item.id === id)?.title ||
+                        requestOptions.find((option) => option.id === id)?.title ||
+                        id}
                   </li>
                 ))}
               </ul>
@@ -757,11 +873,11 @@ export function ApplicationDetail({
                 Добавить документы
               </button>
             </div>
-          ) : (
+          ) : application.backendStatus === 'IN_PROGRESS' ? (
             <button className="button-secondary detail-edit" type="button" onClick={onEdit}>
               Изменить заявку
             </button>
-          )}
+          ) : null}
         </aside>
       </section>
       {terms && (
@@ -797,10 +913,7 @@ export function ApplicationDetail({
                     ],
                     ['Сумма кредита', `${money(column.amount)} ₽`],
                     ['Срок', formatTerm(column.months)],
-                    [
-                      'Ставка',
-                      `${rateLabel(column.rate)}${column.product.id === 'sellers' ? ' в месяц' : ''}`,
-                    ],
+                    ['Ставка', `${rateLabel(column.rate)}${''}`],
                     ['Обеспечение', column.collateral],
                   ].map(([label, value]) => (
                     <div key={label}>
@@ -813,19 +926,26 @@ export function ApplicationDetail({
             ))}
           </div>
           <div className="modal-actions">
+            {actionError && <p role="alert">{actionError}</p>}
             <button
               className="button-primary"
               type="button"
-              onClick={() => {
-                onUpdate({
-                  ...application,
-                  productId: alternative.productId,
-                  amount: alternative.amount,
-                  months: alternative.months,
-                  rate: alternative.rate,
-                  status: 'Одобрено',
-                })
-                setTerms(false)
+              onClick={async () => {
+                try {
+                  await onUpdate({
+                    ...application,
+                    productId: alternative.productId,
+                    amount: alternative.amount,
+                    months: alternative.months,
+                    rate: alternative.rate,
+                    status: 'Одобрено',
+                  })
+                  setTerms(false)
+                } catch (error) {
+                  setActionError(
+                    error instanceof Error ? error.message : 'Ошибка принятия предложения',
+                  )
+                }
               }}
             >
               Принять предложение
@@ -834,8 +954,9 @@ export function ApplicationDetail({
               className="button-secondary"
               type="button"
               onClick={() => {
-                onUpdate({ ...application, status: 'Отклонено' })
-                setTerms(false)
+                void onUpdate({ ...application, status: 'Отклонено' })
+                  .then(() => setTerms(false))
+                  .catch((error) => setActionError(error.message))
               }}
             >
               Отказаться
@@ -845,10 +966,26 @@ export function ApplicationDetail({
       )}
       {signed && (
         <Modal title="Подписание документов" onClose={() => setSigned(false)}>
-          <p className="demo-message">
-            Это демонстрация фронтенда. Подписание и выдача кредита будут доступны после подключения
-            банковского сервиса.
-          </p>
+          <p>Выдача кредита в этом проекте имитируется. Подтвердите выбранные условия.</p>
+          {actionError && <p role="alert">{actionError}</p>}
+          <button
+            className="button-primary"
+            type="button"
+            disabled={actionPending}
+            onClick={async () => {
+              setActionPending(true)
+              try {
+                await onUpdate({ ...application, status: 'Выдано' })
+                setSigned(false)
+              } catch (error) {
+                setActionError(error instanceof Error ? error.message : 'Ошибка выдачи')
+              } finally {
+                setActionPending(false)
+              }
+            }}
+          >
+            Подтвердить и получить кредит
+          </button>
           <button className="button-primary" type="button" onClick={() => setSigned(false)}>
             Понятно
           </button>

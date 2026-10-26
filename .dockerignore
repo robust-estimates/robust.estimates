@@ -5,9 +5,16 @@
 **/__pycache__
 **/node_modules
 **/.DS_Store
-frontend
 work
 outputs
 **/*_test.go
 
 build
+
+**/dist
+**/test-results
+**/playwright-report
+
+**/.env.*
+**/.pytest_cache
+**/*.tsbuildinfo

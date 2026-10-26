@@ -111,7 +111,7 @@
 
 ## Что делает frontend
 
-Исходники интерфейса кладём в корневую папку `frontend/`. Фронтендер выбирает свой стек и коммитит код, package manifest и lock-файл. `node_modules` не коммитим. Текущий Compose запускает backend и scoring; контейнер frontend при необходимости добавляется отдельно.
+Исходники интерфейса кладём в корневую папку `frontend/`. Фронтендер выбирает свой стек и коммитит код, package manifest и lock-файл. `node_modules` не коммитим. Compose запускает backend, scoring и frontend на http://localhost:3000. Актуальное подключение описано в `docs/integration.md`.
 
 1. Получить проект и запустить `make up` из корня.
 2. Открыть Swagger: `http://localhost:8080/docs/`.

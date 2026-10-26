@@ -1,3 +1,17 @@
+import { CompanyProfile } from './CompanyProfile'
+import {
+  getSession,
+  setSession as saveSession,
+  loadProducts,
+  loadApplications,
+  request,
+  saveCompany,
+  purpose,
+  backendProductId,
+  uploadDocuments,
+  overview,
+} from './api'
+import type { ApiApplication, ApiCompany, Recommendation } from './api'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Catalog, SelectionResults } from './Catalog'
 import {
@@ -11,7 +25,7 @@ import { getReviewItems, Review, SpecialistList } from './Specialist'
 import type { ReviewItem } from './Specialist'
 import { products, quoteForProduct } from './products'
 import type { Product } from './products'
-import { defaultSelection, isQuote, isSelection, readApplications } from './types'
+import { defaultSelection, isQuote, isSelection } from './types'
 import type { LoanApplication } from './types'
 import { asset } from './ui'
 import { useSessionValue } from './session'
@@ -35,19 +49,19 @@ function useRoute() {
   }, [])
   return [route, navigate] as const
 }
-function readSession() {
-  try {
-    return sessionStorage.getItem('alfa-credit-session') !== 'guest'
-  } catch {
-    return true
-  }
-}
-
 export default function App() {
   const [route, navigate] = useRoute()
-  const [authenticated, setAuthenticated] = useState(readSession)
+  const [authenticated, setAuthenticated] = useState(() => !!getSession())
   const [accountOpen, setAccountOpen] = useState(false)
-  const company = 'ООО «Лапочка»'
+  const [company, setCompany] = useState('Моя компания')
+  const [displayName, setDisplayName] = useState('')
+  const [profile, setProfile] = useState<ApiCompany | null>(null)
+  const [ready, setReady] = useState(false)
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState('')
+  const [recommendations, setRecommendations] = useState<Recommendation[]>([])
+  const pendingDraft = useRef<{ route: string; id: string } | null>(null)
+  const working = useRef(false)
   const [selection, setSelection] = useSessionValue(
     'alfa-credit-selection-v2',
     defaultSelection,
@@ -63,7 +77,7 @@ export default function App() {
     null,
     (value): value is string | null => value === null || typeof value === 'string',
   )
-  const [applications, setApplications] = useState(readApplications)
+  const [applications, setApplications] = useState<LoanApplication[]>([])
   const [pendingRoute, setPendingRoute] = useSessionValue(
     'alfa-credit-pending-route-v2',
     '/catalog',
@@ -72,9 +86,9 @@ export default function App() {
   )
   const [toast, setToast] = useState('')
   const accountRef = useRef<HTMLDivElement>(null)
-  const requiresLogin = /^\/(?:applications?|accepted|specialist)(?:\/|$)/.test(route)
-  const loginPage = route === '/login' || (!authenticated && requiresLogin)
-  const specialist = authenticated && route.startsWith('/specialist')
+  const loginPage = route === '/login' || !authenticated
+  const staff = authenticated && getSession()?.role === 'EMPLOYEE'
+  const specialist = staff && route.startsWith('/specialist')
   const listPage = route === '/applications'
   const showAccount = authenticated && !loginPage
   const parts = route.split('/')
@@ -109,11 +123,11 @@ export default function App() {
   }, [selection.registration, selection.age, setSelection])
 
   useEffect(() => {
-    if (!authenticated && requiresLogin) {
+    if (!authenticated && route !== '/login') {
       setPendingRoute(route)
       navigate('/login', true)
     }
-  }, [authenticated, requiresLogin, route, navigate, setPendingRoute])
+  }, [authenticated, route, navigate, setPendingRoute])
 
   useEffect(() => {
     if (!accountOpen) return
@@ -147,13 +161,118 @@ export default function App() {
   }, [route, loginPage, specialist])
 
   function setSession(value: boolean) {
-    setAuthenticated(value)
-    try {
-      sessionStorage.setItem('alfa-credit-session', value ? 'client' : 'guest')
-    } catch {
-      /* Keep the session in memory when storage is unavailable. */
+    if (!value) {
+      saveSession(null)
+      setApplications([])
+      setReady(false)
+      pendingDraft.current = null
+      setProfile(null)
+      try {
+        for (const key of Object.keys(sessionStorage))
+          if (key.startsWith('alfa-credit-')) sessionStorage.removeItem(key)
+      } catch {}
     }
+    setAuthenticated(value)
   }
+
+  useEffect(() => {
+    const expired = () => {
+      setSession(false)
+      navigate('/login')
+      setError('Сессия истекла. Войдите снова.')
+    }
+    window.addEventListener('credit-session-expired', expired)
+    return () => window.removeEventListener('credit-session-expired', expired)
+  }, [navigate])
+
+  useEffect(() => {
+    if (!authenticated) return
+    let stopped = false
+    setReady(false)
+    setError('')
+    async function initialize() {
+      try {
+        await loadProducts()
+        const me = await request<{ displayName: string }>('/me')
+        const result = await loadApplications(getSession()?.role === 'EMPLOYEE')
+        if (stopped) return
+        setDisplayName(me.displayName)
+        setApplications(result)
+        if (getSession()?.role === 'CLIENT') {
+          const list = await request<ApiCompany[]>('/companies')
+          if (stopped) return
+          if (list[0]) {
+            setCompany(list[0].name)
+            setProfile(list[0])
+          }
+        }
+        setReady(true)
+      } catch (error) {
+        if (!stopped)
+          setError(error instanceof Error ? error.message : 'Не удалось загрузить данные')
+      }
+    }
+    void initialize()
+    return () => {
+      stopped = true
+    }
+  }, [authenticated])
+
+  useEffect(() => {
+    if (!authenticated || !ready) return
+    let stopped = false
+    let active = false
+    const timer = window.setInterval(async () => {
+      if (working.current || active || document.hidden) return
+      active = true
+      try {
+        const result = await loadApplications(getSession()?.role === 'EMPLOYEE')
+        if (!stopped && !working.current) setApplications(result)
+      } catch (error) {
+        if (!stopped)
+          setError(error instanceof Error ? error.message : 'Не удалось обновить заявки')
+      } finally {
+        active = false
+      }
+    }, 4000)
+    return () => {
+      stopped = true
+      window.clearInterval(timer)
+    }
+  }, [authenticated, ready])
+
+  useEffect(() => {
+    if (!authenticated || !ready || route !== '/results' || !profile) return
+    let stopped = false
+    setRecommendations([])
+    async function recommend() {
+      try {
+        const response = await request<Recommendation[]>('/recommendations', {
+          method: 'POST',
+          body: JSON.stringify({
+            companyId: profile!.id,
+            amountMinor: Math.round(selection.amount * 100),
+            termMonths: selection.months,
+            purpose: purpose(selection),
+            collateral:
+              selection.collateral === 'Да'
+                ? 'AVAILABLE'
+                : selection.collateral === 'Рассмотрю позже'
+                  ? 'LATER'
+                  : 'NONE',
+          }),
+        })
+        if (!stopped) setRecommendations(response)
+      } catch (error) {
+        if (!stopped) setError(error instanceof Error ? error.message : 'Ошибка подбора')
+      }
+    }
+    void recommend()
+    return () => {
+      stopped = true
+    }
+  }, [authenticated, ready, route, selection, profile])
+
   function guardedNavigate(next: string) {
     if (!authenticated) {
       setPendingRoute(next)
@@ -174,34 +293,177 @@ export default function App() {
     })
     guardedNavigate(`/application/${item.id}${edit ? `/${edit}` : ''}`)
   }
-  function persist(next: LoanApplication[]) {
-    setApplications(next)
+  async function updateApplication(value: LoanApplication) {
+    if (working.current) throw new Error('Дождитесь завершения предыдущего действия')
+    working.current = true
+    setBusy(true)
+    setError('')
     try {
-      localStorage.setItem('alfa-credit-applications-v2', JSON.stringify(next))
-    } catch {
-      setToast('Данные сохранены на время сеанса. Хранилище браузера недоступно.')
+      let current = await request<ApiApplication>(`/applications/${value.id}`)
+      if (getSession()?.role === 'EMPLOYEE') {
+        const outcomes: Record<string, string> = {
+          Одобрено: 'APPROVED',
+          Отклонено: 'REJECTED',
+          'Другие условия': 'ALTERNATIVE',
+          'Запрошены данные': 'NEEDS_INFO',
+        }
+        const outcome = outcomes[value.status]
+        if (!outcome) throw new Error('Недоступное действие')
+        const terms = value.alternative
+        const body = {
+          outcome,
+          reason:
+            terms?.comment || value.documentRequest?.other || 'Решение кредитного специалиста',
+          ...(outcome === 'NEEDS_INFO'
+            ? {
+                items: value.documentRequest?.items.map((id) => ({
+                  title:
+                    id === 'other'
+                      ? value.documentRequest?.other || 'Дополнительный документ'
+                      : id === 'annual-report'
+                        ? 'Финансовая отчётность'
+                        : id === 'passport'
+                          ? 'Паспорт'
+                          : 'Сведения по действующим кредитам',
+                  type: id === 'annual-report' ? 'FINANCIAL_REPORT' : 'OTHER',
+                  required: true,
+                })),
+              }
+            : {}),
+          ...(['APPROVED', 'ALTERNATIVE'].includes(outcome)
+            ? {
+                offers: [
+                  {
+                    productId: backendProductId(
+                      outcome === 'ALTERNATIVE' && terms ? terms.productId : value.productId,
+                    ),
+                    amountMinor: Math.round(
+                      (outcome === 'ALTERNATIVE' && terms ? terms.amount : value.amount) * 100,
+                    ),
+                    collateral:
+                      outcome === 'ALTERNATIVE' && terms
+                        ? terms.collateral
+                        : products.find((item) => item.id === value.productId)?.secured
+                          ? 'REQUIRED'
+                          : 'NONE',
+                    termMonths: outcome === 'ALTERNATIVE' && terms ? terms.months : value.months,
+                    annualRateBps: Math.round(
+                      (outcome === 'ALTERNATIVE' && terms ? terms.rate : value.rate) * 100,
+                    ),
+                  },
+                ],
+              }
+            : {}),
+        }
+        await request(
+          `/bank/applications/${value.id}/decision`,
+          { method: 'POST', body: JSON.stringify(body) },
+          current.version,
+        )
+      } else if (value.status === 'Отклонено') {
+        await request(
+          `/applications/${value.id}/decline`,
+          { method: 'POST', body: JSON.stringify({ reason: 'Клиент отказался от предложения' }) },
+          current.version,
+        )
+      } else {
+        const old = applications.find((item) => item.id === value.id)
+        if (current.status !== 'ACCEPTED') {
+          if (!old?.offer) throw new Error('Нет актуального предложения банка. Обновите заявку.')
+          current = await request<ApiApplication>(
+            `/applications/${value.id}/accept`,
+            { method: 'POST', body: JSON.stringify({ offerId: old.offer.id }) },
+            current.version,
+          )
+        }
+        if (value.status === 'Выдано')
+          await request(`/applications/${value.id}/issuance`, { method: 'POST' }, current.version)
+      }
+      setApplications(await loadApplications(getSession()?.role === 'EMPLOYEE'))
+      setToast('Изменения сохранены')
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Ошибка сохранения')
+      throw error
+    } finally {
+      working.current = false
+      setBusy(false)
     }
   }
-  function updateApplication(value: LoanApplication) {
-    persist(
-      applications.some((item) => item.id === value.id)
-        ? applications.map((item) => (item.id === value.id ? value : item))
-        : [value, ...applications],
-    )
-  }
-  function submitApplication(value: Omit<LoanApplication, 'id' | 'date' | 'status'>) {
-    const numbers = applications.map((item) => Number(item.id.split('-').at(-1)) || 0)
-    const id = existing?.id ?? `XX-${String(Math.max(123, ...numbers) + 1).padStart(6, '0')}`
-    const next: LoanApplication = {
-      ...value,
-      id,
-      date: existing?.date ?? new Date().toISOString(),
-      status: existing?.status === 'Черновик' ? 'Черновик' : 'На рассмотрении',
+
+  async function submitApplication(value: Omit<LoanApplication, 'id' | 'date' | 'status'>) {
+    if (working.current) throw new Error('Дождитесь завершения предыдущего действия')
+    working.current = true
+    setBusy(true)
+    setError('')
+    try {
+      const finance = value.financials
+      if (!finance) throw new Error('Заполните финансовые сведения')
+      const company = await saveCompany(value.applicant, selection, finance, existing?.companyId)
+      setCompany(company.name)
+      setProfile(company)
+      const need = {
+        companyId: company.id,
+        amountMinor: Math.round(value.amount * 100),
+        termMonths: value.months,
+        purpose: value.purposeCode || existing?.purposeCode || 'OTHER',
+        description:
+          selection.other || selection.purpose || existing?.description || 'Финансирование бизнеса',
+      }
+      let app: ApiApplication
+      const id =
+        existing?.id ||
+        (pendingDraft.current?.route === route ? pendingDraft.current.id : undefined)
+      if (id) {
+        app = await request<ApiApplication>(`/applications/${id}`)
+        app = await request<ApiApplication>(
+          `/applications/${id}`,
+          {
+            method: 'PATCH',
+            body: JSON.stringify({
+              need,
+              ...(app.status === 'IN_PROGRESS'
+                ? { productId: backendProductId(value.productId) }
+                : {}),
+            }),
+          },
+          app.version,
+        )
+      } else {
+        app = await request<ApiApplication>('/applications', {
+          method: 'POST',
+          body: JSON.stringify({
+            need,
+            productId: backendProductId(value.productId),
+            consents: { personalDataProcessing: true, creditHistoryCheck: true },
+          }),
+        })
+        pendingDraft.current = { route, id: app.id }
+      }
+      app = await uploadDocuments(app.id, value.documentFiles || {}, existing?.information)
+      const validation = await request<{
+        valid: boolean
+        errors: { message: string }[]
+        missingFields: string[]
+      }>(`/applications/${app.id}/validation`, { method: 'POST' }, app.version)
+      if (!validation.valid)
+        throw new Error(
+          validation.errors.map((item) => item.message).join('; ') ||
+            `Заполните: ${validation.missingFields.join(', ')}`,
+        )
+      app = await request<ApiApplication>(
+        `/applications/${app.id}/submit`,
+        { method: 'POST' },
+        app.version,
+      )
+      const saved = await overview(app, false)
+      setApplications((current) => [saved, ...current.filter((item) => item.id !== saved.id)])
+      pendingDraft.current = null
+      setEditingId(null)
+      navigate(`/accepted/${app.id}`)
+    } finally {
+      working.current = false
+      setBusy(false)
     }
-    updateApplication(next)
-    setEditingId(null)
-    navigate(existing ? `/applications/${id}` : `/accepted/${id}`)
-    if (existing) setToast('Изменения сохранены')
   }
   function openReview(item: ReviewItem) {
     navigate(`/specialist/${item.id}`)
@@ -269,7 +531,7 @@ export default function App() {
               <button
                 className="account-button"
                 type="button"
-                aria-label={`Меню профиля: ${specialist ? 'Коробов П. О. Специалист' : `${company} Иванов К. К.`}`}
+                aria-label={`Меню профиля: ${displayName}`}
                 aria-expanded={accountOpen}
                 onClick={() => setAccountOpen(!accountOpen)}
               >
@@ -282,8 +544,8 @@ export default function App() {
                   />
                 </span>
                 <span className="account-copy">
-                  <span>{specialist ? 'Коробов П. О.' : company}</span>
-                  <small>{specialist ? 'Специалист' : 'Иванов К. К.'}</small>
+                  <span>{specialist ? displayName : company}</span>
+                  <small>{specialist ? 'Специалист' : displayName}</small>
                 </span>
                 <img
                   className="account-chevron"
@@ -296,6 +558,17 @@ export default function App() {
               {accountOpen && (
                 <div className="account-menu">
                   <p>{specialist ? 'Рабочее место специалиста' : company}</p>
+                  {!staff && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setAccountOpen(false)
+                        navigate('/company')
+                      }}
+                    >
+                      Мои данные
+                    </button>
+                  )}
                   {!specialist && (
                     <button
                       type="button"
@@ -311,10 +584,18 @@ export default function App() {
                     type="button"
                     onClick={() => {
                       setAccountOpen(false)
-                      navigate(specialist ? '/catalog' : '/specialist')
+                      if (staff) navigate(specialist ? '/catalog' : '/specialist')
+                      else {
+                        setSession(false)
+                        navigate('/login')
+                      }
                     }}
                   >
-                    {specialist ? 'Кабинет клиента' : 'Кредитный специалист'}
+                    {staff
+                      ? specialist
+                        ? 'Каталог'
+                        : 'Кредитный специалист'
+                      : 'Войти как сотрудник'}
                   </button>
                   <button
                     type="button"
@@ -344,7 +625,34 @@ export default function App() {
         </div>
       </header>
       <div id="main-content" tabIndex={-1}>
-        {route === '/catalog' || route === '/selection' ? (
+        {error && (
+          <div className="integration-error" role="alert">
+            {error}
+            <button type="button" onClick={() => setError('')}>
+              ×
+            </button>
+          </div>
+        )}
+        {busy && (
+          <p className="integration-status" role="status">
+            Сохраняем данные…
+          </p>
+        )}
+        {loginPage ? (
+          <Login
+            onLogin={(isSpecialist) => {
+              setSession(true)
+              navigate(isSpecialist ? '/specialist' : pendingRoute)
+            }}
+          />
+        ) : !ready ? (
+          <main className="empty-state">
+            <p>Загружаем данные кабинета…</p>
+            <button type="button" onClick={() => window.location.reload()}>
+              Повторить
+            </button>
+          </main>
+        ) : route === '/catalog' || route === '/selection' ? (
           <Catalog
             expanded={route === '/selection'}
             selection={selection}
@@ -357,21 +665,25 @@ export default function App() {
             onComplete={() => navigate('/results')}
             onSelect={(item) => selectProduct(item)}
           />
+        ) : route === '/company' || (route === '/results' && !profile) ? (
+          <CompanyProfile
+            company={profile ?? undefined}
+            selection={selection}
+            onSaved={(value) => {
+              setProfile(value)
+              setCompany(value.name)
+              if (route === '/company') navigate('/catalog')
+            }}
+          />
         ) : route === '/results' ? (
           <SelectionResults
             selection={selection}
+            recommendations={recommendations}
             onReset={() => {
               setSelection(defaultSelection)
               navigate('/selection')
             }}
             onSelect={(item) => selectProduct(item, true)}
-          />
-        ) : loginPage ? (
-          <Login
-            onLogin={(isSpecialist) => {
-              setSession(true)
-              navigate(isSpecialist ? '/specialist' : pendingRoute)
-            }}
           />
         ) : /^\/application\/[^/]+(?:\/[^/]+)?$/.test(route) &&
           product &&
@@ -382,6 +694,8 @@ export default function App() {
             amount={effectiveQuote.amount}
             months={effectiveQuote.months}
             existing={existing}
+            initialCompany={profile ?? undefined}
+            initialPurpose={selection.purpose ? purpose(selection) : undefined}
             registration={selection.registration}
             hasLoans={selection.loans === 'Да'}
             onCancel={() => navigate(existing ? `/applications/${existing.id}` : '/catalog')}
@@ -420,7 +734,7 @@ export default function App() {
           />
         ) : /^\/applications\/[^/]+$/.test(route) && current ? (
           <ApplicationDetail
-            key={current.id}
+            key={`${current.id}-${current.version}`}
             application={current}
             onBack={() => navigate('/applications')}
             onNew={() => navigate('/catalog')}
@@ -435,13 +749,13 @@ export default function App() {
             }}
             onUpdate={updateApplication}
           />
-        ) : route === '/specialist' ? (
+        ) : staff && route === '/specialist' ? (
           <SpecialistList applications={applications} onOpen={openReview} />
-        ) : /^\/specialist\/[^/]+$/.test(route) && review ? (
+        ) : staff && /^\/specialist\/[^/]+$/.test(route) && review ? (
           <Review
-            key={review.id}
+            key={`${review.id}-${applications.find((item) => item.id === review.id)?.version}`}
             item={review}
-            application={applications.find((item) => item.id === review.id)}
+            application={applications.find((item) => item.id === review.id)!}
             onBack={() => navigate('/specialist')}
             onSave={updateApplication}
           />

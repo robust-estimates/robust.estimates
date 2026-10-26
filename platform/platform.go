@@ -16,6 +16,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/backoff"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/health"
@@ -210,7 +211,18 @@ func WriteError(w http.ResponseWriter, err error, trace string) {
 }
 
 func Dial(address string) *grpc.ClientConn {
-	c, e := grpc.NewClient(address, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	target := address
+	if !strings.Contains(target, "://") {
+		target = "passthrough:///" + target
+	}
+
+	c, e := grpc.NewClient(target,
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithConnectParams(grpc.ConnectParams{
+			Backoff:           backoff.Config{BaseDelay: 100 * time.Millisecond, Multiplier: 1.6, Jitter: 0.2, MaxDelay: 3 * time.Second},
+			MinConnectTimeout: 3 * time.Second,
+		}),
+	)
 	if e != nil {
 		panic(e)
 	}

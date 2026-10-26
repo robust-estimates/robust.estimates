@@ -1,9 +1,3 @@
-"""Правила проверки 12 кредитных сценариев.
-
-Неизвестные тарифы и недостающие данные не заменяются выдуманными значениями.
-Все денежные суммы внутри этого модуля указаны в рублях.
-"""
-
 from dataclasses import dataclass
 from decimal import Decimal
 from enum import StrEnum
@@ -44,7 +38,7 @@ class AssessmentStatus(StrEnum):
 
 @dataclass(frozen=True)
 class ProductTerms:
-    """Подтверждённые параметры конкретного продукта."""
+
 
     product_id: ProductId
     min_amount: Decimal | None = None
@@ -60,7 +54,7 @@ class ProductTerms:
 
 @dataclass(frozen=True)
 class ApplicationData:
-    """Минимальные данные для предварительной оценки."""
+
 
     business_age_months: int | None
     monthly_revenue: Decimal | None
@@ -72,7 +66,7 @@ class ApplicationData:
     purpose: str | None = None
     has_collateral: bool | None = None
 
-    # Для специализированных продуктов.
+
     collateral_value: Decimal | None = None
     monthly_marketplace_payouts: Decimal | None = None
     monthly_marketplace_returns: Decimal | None = None
@@ -107,7 +101,7 @@ def annuity_payment(
     annual_rate_percent: Decimal,
     term_months: int,
 ) -> Decimal:
-    """Рассчитывает месячный аннуитетный платёж в рублях."""
+
 
     if amount < ZERO:
         raise ValueError("Сумма не может быть отрицательной")
@@ -140,7 +134,7 @@ def calculate_capacity(
     app: ApplicationData,
     terms: ProductTerms,
 ) -> tuple[Decimal | None, str]:
-    """Оценивает сумму по DSCR и стресс-сценарию для аннуитета."""
+
 
     if _missing_financial_data(app):
         return None, "Недостаточно финансовых данных"
@@ -161,8 +155,8 @@ def calculate_capacity(
     if terms.max_term_months is None or terms.max_term_months <= 0:
         return None, "Не задан допустимый срок продукта"
 
-    # CFADS в этой упрощённой версии — выручка минус расходы.
-    # Существующие кредитные платежи учитываются отдельно.
+
+
     cfads = revenue - expenses
     stressed_cfads = cfads * (ONE - STRESS_FACTOR)
 
@@ -181,7 +175,7 @@ def calculate_capacity(
     if payment_capacity <= ZERO:
         return ZERO, "Денежного потока недостаточно для нового платежа"
 
-    # Обратная формула аннуитета: максимальная сумма при данном платеже.
+
     rate = terms.annual_rate_percent / Decimal("1200")
     months = terms.max_term_months
 
@@ -201,7 +195,7 @@ def assess_product(
     app: ApplicationData,
     terms: ProductTerms,
 ) -> ProductAssessment:
-    """Проверяет требования и доступность продукта."""
+
 
     pid = terms.product_id
 
@@ -219,7 +213,7 @@ def assess_product(
             maximum_affordable_amount=capacity,
         )
 
-    # Общие проверки требований.
+
     if (
         terms.min_business_age_months is not None
         and app.business_age_months is not None
@@ -262,7 +256,7 @@ def assess_product(
             "Для продукта требуется залог",
         )
 
-    # Специализированные требования.
+
     if pid == ProductId.MONEY_FOR_BUSINESS:
         if app.has_collateral is not True or app.collateral_value is None:
             return result(
@@ -321,7 +315,7 @@ def assess_product(
                 "Нужно проверить тариф и правила расчёта обязательств по карте",
             )
 
-    # Для продуктов с особыми платежами не подменяем их аннуитетом.
+
     if terms.payment_model != PaymentModel.ANNUITY:
         return result(
             AssessmentStatus.MANUAL_REVIEW,
@@ -401,6 +395,6 @@ def assess_all_products(
     app: ApplicationData,
     catalog: list[ProductTerms],
 ) -> list[ProductAssessment]:
-    """Оценивает продукты каталога без выдумывания отсутствующих условий."""
+
 
     return [assess_product(app, terms) for terms in catalog]

@@ -5,17 +5,13 @@ export function useSessionValue<T>(key: string, initial: T, valid: (value: unkno
     try {
       const stored: unknown = JSON.parse(sessionStorage.getItem(key) ?? 'null')
       if (valid(stored)) return stored
-    } catch {
-      /* A disabled or damaged browser store must not prevent rendering. */
-    }
+    } catch {}
     return initial
   })
   useEffect(() => {
     try {
       sessionStorage.setItem(key, JSON.stringify(value))
-    } catch {
-      /* Retain the in-memory state. */
-    }
+    } catch {}
   }, [key, value])
   return [value, setValue] as const
 }
@@ -23,7 +19,5 @@ export function useSessionValue<T>(key: string, initial: T, valid: (value: unkno
 export function clearSessionValue(key: string) {
   try {
     sessionStorage.removeItem(key)
-  } catch {
-    /* Storage can be disabled. */
-  }
+  } catch {}
 }

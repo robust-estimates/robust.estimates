@@ -1,11 +1,3 @@
-"""rules-v1: балльная карта.
-
-Бейзлайн и запасной вариант для модели риска. Баллы подобраны вручную по
-направлениям факторов из ТЗ: долговая нагрузка, просрочки и нестабильные финансы
-повышают риск, стабильный бизнес и чистая кредитная история понижают.
-Чем больше баллов, тем ниже риск.
-"""
-
 from dataclasses import dataclass
 
 from schema import Application, CreditHistory, RiskLevel
@@ -24,7 +16,7 @@ class Factor:
     feature: str
     value: str
     points: int
-    text: str  # для андеррайтера: «Долговая нагрузка 42%: −60»
+    text: str
 
 
 @dataclass(frozen=True)
@@ -35,7 +27,7 @@ class Risk:
     model_version: str = MODEL_VERSION
 
     def to_api(self) -> dict:
-        """Поля Scoring из openapi.yaml, кроме checks: их собирает бэкенд по ответам моков."""
+
         return {
             "score": self.score,
             "riskLevel": self.risk_level.value,
@@ -138,6 +130,6 @@ def assess_risk(app: Application) -> Risk:
 
     score = BASE_POINTS + sum(f.points for f in factors)
     score = max(MIN_SCORE, min(MAX_SCORE, score))
-    # Сначала самые сильные факторы: андеррайтеру важнее то, что сильнее всего сдвинуло оценку
+
     factors.sort(key=lambda f: abs(f.points), reverse=True)
     return Risk(score=score, risk_level=risk_level(score), factors=factors)

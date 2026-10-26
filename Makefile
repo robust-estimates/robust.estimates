@@ -3,7 +3,7 @@ SHELL := /bin/sh
 .NOTPARALLEL:
 
 ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))
-PYTHON ?= $(shell for candidate in python3.13 python3.12 python3.11 python3.10 python3; do command -v $$candidate 2>/dev/null && break; done)
+PYTHON ?= $(shell for candidate in python3.13 python3.12 python3; do command -v $$candidate 2>/dev/null && break; done)
 GO ?= go
 DOCKER ?= docker
 COMPOSE ?= $(DOCKER) compose
@@ -21,13 +21,15 @@ GO_SERVICES := gateway company-service application-service
 GO_DIRS := gateway company-service application-service platform contracts scripts deploy/minio
 RUN := $(MAKE) --no-print-directory -C "$(ROOT)"
 
-.PHONY: help doctor doctor-host doctor-docker env setup deps proto-deps fmt fmt-check vet test test-go test-python build build-linux api compose-check check check-go up start down restart status logs ready e2e e2e-contract proto
+.PHONY: help doctor doctor-host doctor-docker env setup deps proto-deps fmt fmt-check vet test test-go test-python build build-linux api compose-check check check-go up start down restart status logs ready e2e e2e-contract proto frontend-deps build-frontend test-frontend
 
 help:
 	@printf '%s\n' \
 	  'make check          Финальная проверка: код, тесты, Docker, все 34 операции API' \
 	  'make check-go       Только Go: форматирование, vet, тесты с race и сборка' \
 	  'make setup          Создать отсутствующий .env и установить тестовые зависимости в .venv' \
+	  'make build-frontend Собрать frontend локально (нужны Node.js и npm)' \
+	  'make test-frontend  Проверить браузерный E2E после npm ci и установки Chromium' \
 	  'make up             Собрать образы и запустить Docker с ожиданием готовности' \
 	  'make start          Запустить Docker без пересборки образов' \
 	  'make e2e            Проверить работающий API, сохранить JSON-отчёт' \
@@ -50,7 +52,7 @@ doctor-host:
 	@command -v "$(GO)" >/dev/null 2>&1 || { printf '%s\n' 'Не найден Go. Установите Go 1.27.3 или укажите GO=/path/to/go.'; exit 1; }
 	@test -n "$(PYTHON)" && test -x "$(PYTHON)" || command -v "$(PYTHON)" >/dev/null 2>&1 || { printf '%s\n' 'Не найден Python. Укажите PYTHON=/path/to/python3.'; exit 1; }
 	@"$(GO)" version
-	@"$(PYTHON)" -c 'import sys; print("Python " + sys.version.split()[0]); sys.exit(0 if sys.version_info >= (3, 10) else "Нужен Python >= 3.10; укажите PYTHON=/path/to/python3.13")'
+	@"$(PYTHON)" -c 'import sys; print("Python " + sys.version.split()[0]); sys.exit(0 if sys.version_info >= (3, 12) else "Нужен Python >= 3.12; укажите PYTHON=/path/to/python3.13")'
 
 doctor-docker:
 	@command -v "$(DOCKER)" >/dev/null 2>&1 || { printf '%s\n' 'Не найден Docker.'; exit 1; }
@@ -64,11 +66,11 @@ doctor:
 env:
 	@cd "$(ROOT)" && if [ ! -f .env ]; then cp .env.example .env && printf '%s\n' 'Создан .env из .env.example'; fi
 
-$(VENV)/.backend-test-deps: $(ROOT)/scripts/requirements-test.txt $(ROOT)/scoring/requirements.txt
+$(VENV)/.backend-test-deps: $(ROOT)/scripts/requirements-test.txt $(ROOT)/scoring/requirements.txt $(ROOT)/scoring/requirements-test.txt
 	@test -n "$(PYTHON)" || { printf '%s\n' 'Не найден Python.'; exit 1; }
 	@test -x "$(VPY)" || "$(PYTHON)" -m venv "$(VENV)"
-	@"$(VPY)" -c 'import sys; sys.exit(0 if sys.version_info >= (3, 10) else "В .venv нужен Python >= 3.10; укажите другую папку VENV")'
-	@"$(VPY)" -m pip install --disable-pip-version-check --no-cache-dir -r "$(ROOT)/scripts/requirements-test.txt" -r "$(ROOT)/scoring/requirements.txt"
+	@"$(VPY)" -c 'import sys; sys.exit(0 if sys.version_info >= (3, 12) else "В .venv нужен Python >= 3.12; укажите другую папку VENV")'
+	@"$(VPY)" -m pip install --disable-pip-version-check --no-cache-dir -r "$(ROOT)/scripts/requirements-test.txt" -r "$(ROOT)/scoring/requirements-test.txt"
 	@touch "$@"
 
 deps: $(VENV)/.backend-test-deps
@@ -90,7 +92,7 @@ test-go:
 	@cd "$(ROOT)" && "$(GO)" test -race -count=1 $(GO_PACKAGES)
 
 test-python: deps
-	@cd "$(ROOT)/scoring" && PYTHONPATH=generated:. "$(VPY)" -m unittest discover -s tests -v
+	@cd "$(ROOT)/scoring" && PYTHONPATH=generated:. "$(VPY)" -m pytest tests -q
 
 test:
 	@$(RUN) test-go
@@ -175,3 +177,12 @@ proto-deps: $(VENV)/.backend-proto-deps
 
 proto: proto-deps
 	@cd "$(ROOT)" && "$(VPY)" scripts/generate.py
+
+frontend-deps:
+	@cd "$(ROOT)/frontend" && npm ci --no-audit --no-fund
+
+build-frontend: frontend-deps
+	@cd "$(ROOT)/frontend" && npm run build
+
+test-frontend:
+	@cd "$(ROOT)/frontend" && npm run test:e2e

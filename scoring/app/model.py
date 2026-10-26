@@ -1,5 +1,8 @@
 from dataclasses import dataclass
 
+from risk.rules_v1 import MODEL_VERSION, assess_risk
+from schema import Application, CreditHistory
+
 
 @dataclass(frozen=True)
 class Risk:
@@ -10,38 +13,25 @@ class Risk:
 
 
 class RuleModel:
-    version = "rules-v1"
+    version = MODEL_VERSION
 
     def evaluate(self, features):
-        score = 800
-        factors = []
+        overdue = bool(features.has_overdue_debt)
+        application = Application(
+            business_age_months=features.business_age_months,
+            monthly_revenue_minor=features.monthly_revenue_minor,
+            monthly_expenses_minor=features.monthly_expenses_minor,
+            monthly_debt_payments_minor=features.monthly_debt_payments_minor,
+            requested_amount_minor=features.requested_amount_minor,
+            requested_term_months=features.term_months,
+            company_credit_history=CreditHistory(
+                overdues_30_plus_12m=1 if overdue else 0,
+                max_overdue_days_24m=90 if overdue else 0,
+                active_loans=1 if features.monthly_debt_payments_minor > 0 else 0,
+            ),
+        )
+        result = assess_risk(application)
+        level = result.risk_level.value
+        recommendation = {"LOW": "APPROVE", "MEDIUM": "MANUAL_REVIEW", "HIGH": "REJECT"}[level]
 
-        if features.business_age_months < 12:
-            score -= 150
-            factors.append("Короткий срок деятельности")
-
-        if features.has_overdue_debt:
-            score -= 250
-            factors.append("Просрочки по синтетическим данным БКИ")
-
-        if features.monthly_revenue_minor <= 0:
-            score -= 300
-            factors.append("Недостаточно данных об обороте")
-        else:
-            debt_ratio = features.monthly_debt_payments_minor / features.monthly_revenue_minor
-
-            if debt_ratio > 0.4:
-                score -= 200
-                factors.append("Высокая текущая долговая нагрузка")
-
-            cash = features.monthly_revenue_minor - features.monthly_expenses_minor - features.monthly_debt_payments_minor
-
-            if cash <= 0:
-                score -= 150
-                factors.append("Отрицательный операционный остаток")
-
-        score = max(0, min(1000, score))
-        level = "LOW" if score >= 700 else "MEDIUM" if score >= 450 else "HIGH"
-        recommendation = "APPROVE" if level == "LOW" else "MANUAL_REVIEW" if level == "MEDIUM" else "REJECT"
-
-        return Risk(score, level, tuple(factors or ["Стабильный оборот и приемлемая долговая нагрузка"]), recommendation)
+        return Risk(result.score, level, tuple(factor.text for factor in result.factors), recommendation)

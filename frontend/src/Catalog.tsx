@@ -1,3 +1,5 @@
+import { frontendProductId, useCalculation } from './api'
+import type { Recommendation } from './api'
 import { useMemo, useState } from 'react'
 import { categories, formatTerm, loanFigures, money, products, rateLabel } from './products'
 import type { Product } from './products'
@@ -19,9 +21,15 @@ export function ProductCard({
   selection?: Selection
   disabled?: boolean
 }) {
-  const rate = mode === 'matched' && product.id === 'business' ? 19 : product.rate
+  const calculation = useCalculation(
+    product.id,
+    selection?.amount || 0,
+    selection?.months || 0,
+    !!selection && !disabled,
+  )
+  const rate = product.rate
   const total = selection
-    ? loanFigures(selection.amount, rate, selection.months, product.id === 'sellers').total
+    ? (calculation?.total ?? loanFigures(selection.amount, rate, selection.months).total)
     : 0
   return (
     <article
@@ -40,10 +48,7 @@ export function ProductCard({
       <dl className="product-stats">
         <div>
           <dt>{mode === 'catalog' ? 'Ставка от' : 'Ставка'}</dt>
-          <dd>
-            {rateLabel(rate)}
-            {product.id === 'sellers' ? ' в месяц' : ''}
-          </dd>
+          <dd>{rateLabel(rate)}</dd>
         </div>
         {mode === 'matched' && product.id === 'business' && selection ? (
           <>
@@ -246,53 +251,26 @@ export function Catalog({
   )
 }
 
-function eligibility(product: Product, selection: Selection) {
-  if (['Менее 6 месяцев', 'Менее 9 месяцев'].includes(selection.age)) return false
-  if (
-    product.amount * 1_000_000 < selection.amount ||
-    selection.amount < creditDetails[product.id].minAmount ||
-    selection.months < creditDetails[product.id].minMonths ||
-    (product.term !== 'бессрочно' && product.months < selection.months)
-  )
-    return false
-  if (product.secured && selection.collateral === 'Нет') return false
-  if (product.id === 'refinance' && selection.loans === 'Нет') return false
-  if (product.id === 'sellers' && selection.industry !== 'Торговля') return false
-  if (product.id === 'mortgage' && selection.purpose !== 'Покупка недвижимости') return false
-  if (product.id === 'refinance' && selection.purpose !== 'Рефинансирование') return false
-  return true
-}
-function matchesPurpose(product: Product, selection: Selection) {
-  if (selection.purpose === 'Рефинансирование') return product.id === 'refinance'
-  if (selection.purpose === 'Покупка недвижимости')
-    return product.id === 'mortgage' || product.id === 'secured'
-  return ['business', 'credit-line'].includes(product.id)
-}
 export function SelectionResults({
   selection,
+  recommendations,
   onReset,
   onSelect,
 }: {
   selection: Selection
+  recommendations: Recommendation[]
   onReset: () => void
   onSelect: (product: Product) => void
 }) {
-  const available = products.filter((product) => eligibility(product, selection))
-  const matched = available.filter((product) => matchesPurpose(product, selection))
-  const alternatives = available.filter((product) => !matched.includes(product))
-  const unavailableOrder = [
-    'mortgage',
-    'refinance',
-    'sellers',
-    'secured',
-    'business-one',
-    'business',
-    'credit-line',
-    'overdraft',
-  ]
-  const unavailable = products
-    .filter((product) => !available.includes(product))
-    .sort((a, b) => unavailableOrder.indexOf(a.id) - unavailableOrder.indexOf(b.id))
+  const groupProducts = (availability: string) =>
+    recommendations
+      .filter((item) => item.availability === availability)
+      .sort((a, b) => a.rank - b.rank)
+      .map((item) => products.find((product) => product.id === frontendProductId(item.product.id)))
+      .filter((item): item is Product => !!item)
+  const matched = groupProducts('BEST_MATCH')
+  const alternatives = groupProducts('ALTERNATIVE')
+  const unavailable = groupProducts('UNAVAILABLE')
   const groups = [
     {
       title: 'Наиболее подходящие',

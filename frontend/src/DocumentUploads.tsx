@@ -1,3 +1,4 @@
+import { selectedFiles } from './api'
 import { useId, useRef, useState } from 'react'
 import type { DocumentRequirement } from './creditData'
 import { fileValidationError } from './creditData'
@@ -60,14 +61,17 @@ function DocumentUpload({
         type="file"
         tabIndex={-1}
         aria-label={`Файл: ${requirement.title}`}
-        accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg"
+        accept=".pdf,.png,.jpg,.jpeg"
         onChange={(event) => {
           const file = event.target.files?.[0]
           event.target.value = ''
           if (!file) return
           const message = fileValidationError(file)
           setError(message)
-          if (!message) onChange(file.name)
+          if (!message) {
+            selectedFiles.set(requirement.id, file)
+            onChange(file.name)
+          }
         }}
       />
       <button
@@ -93,7 +97,7 @@ function DocumentUpload({
         </span>
       </button>
       <p id={`${id}-description`} className="document-upload-description">
-        {requirement.description || 'PDF, Word, Excel, PNG или JPEG; до 20 МБ.'}
+        {requirement.description || 'PDF, PNG или JPEG; до 10 МБ.'}
       </p>
       {filename && (
         <button
@@ -102,6 +106,7 @@ function DocumentUpload({
           aria-label={`Удалить документ ${filename}`}
           onClick={() => {
             setError('')
+            selectedFiles.delete(requirement.id)
             onChange()
           }}
         >

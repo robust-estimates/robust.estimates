@@ -2,7 +2,10 @@ package grpcadapter
 
 import (
 	"context"
+	"log/slog"
 	"time"
+
+	"google.golang.org/grpc"
 
 	"robust/application-service/internal/domain"
 	pb "robust/contracts/credit/v1"
@@ -44,8 +47,9 @@ type ScoringClient struct{ Client pb.ScoringServiceClient }
 func (c *ScoringClient) Evaluate(ctx context.Context, in domain.ScoringInput) (domain.Scoring, error) {
 	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
-	v, e := c.Client.Evaluate(ctx, platform.PB(in, &pb.ScoringInput{}))
+	v, e := c.Client.Evaluate(ctx, platform.PB(in, &pb.ScoringInput{}), grpc.WaitForReady(true))
 	if e != nil {
+		slog.Warn("scoring RPC failed", "application_id", in.ApplicationID, "error", e)
 		return domain.Scoring{}, e
 	}
 

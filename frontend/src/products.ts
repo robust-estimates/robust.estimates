@@ -10,6 +10,7 @@ export type Product = {
   rate: number
   amount: number
   months: number
+  purposes?: string[]
   secured: boolean
   limit?: boolean
   term?: string
@@ -165,11 +166,7 @@ export function loanFigures(amount: number, rate: number, months: number, monthl
       overpayment,
     }
   }
-  // The prepared demo quote is supplied by the mockup; use it consistently on every screen.
-  const monthly =
-    amount === 15_000_000 && rate === 19 && months === 48
-      ? 435_750
-      : Math.round(monthlyPayment(amount, rate, months))
+  const monthly = Math.round(monthlyPayment(amount, rate, months))
   const total = rate === 0 ? amount : Math.max(amount, monthly * months)
   return { monthly, total, overpayment: total - amount }
 }

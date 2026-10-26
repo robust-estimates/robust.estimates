@@ -40,7 +40,7 @@ def test_inns_are_unique_valid_and_synthetic(companies):
 
 
 def test_known_inn_checksum():
-    # Контрольные цифры считаются по алгоритму ФНС
+
     assert _inn_is_valid(make_inn(123, "OOO"))
     assert _inn_is_valid(make_inn(123, "IP"))
 

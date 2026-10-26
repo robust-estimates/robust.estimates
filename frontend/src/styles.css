@@ -408,22 +408,6 @@ button.nav-link:hover {
   line-height: 16px;
   white-space: nowrap;
 }
-.category-chip:first-child {
-  width: 116px;
-}
-.category-chip:nth-child(2),
-.category-chip:nth-child(3) {
-  width: 102px;
-}
-.category-chip:nth-child(4) {
-  width: 95px;
-}
-.category-chip:nth-child(5) {
-  width: 130px;
-}
-.category-chip:nth-child(6) {
-  width: 144px;
-}
 .category-chip.selected {
   border-color: var(--primary);
   color: var(--primary);
@@ -3590,4 +3574,110 @@ button.nav-link:hover {
     background-position: center;
     background-color: transparent;
   }
+}
+
+.integration-error,
+.integration-status {
+  padding: 16px 24px;
+  margin: 16px;
+  border-radius: 12px;
+  background: #fff1f1;
+  color: #8e1515;
+}
+
+.integration-error button {
+  float: right;
+}
+
+.integration-status {
+  background: #eef6ff;
+  color: #174a7a;
+}
+
+.category-filters {
+  flex-wrap: wrap;
+}
+.category-filters .category-chip {
+  width: auto;
+  flex: 0 0 auto;
+  max-width: 100%;
+  height: auto;
+  min-height: 36px;
+  padding: 8px 15px;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.application-form > .error-text,
+.application-form > [role='status'] {
+  grid-column: 1 / -1;
+}
+.application-applicant,
+.application-summary,
+.contact-fields > *,
+.selected-product strong {
+  min-width: 0;
+}
+.application-form .consent {
+  white-space: normal;
+  align-items: flex-start;
+}
+.consent input,
+.financial-overdue input {
+  flex: 0 0 auto;
+}
+.consent span,
+.financial-overdue span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.financial-fields {
+  min-width: 0;
+  display: grid;
+  gap: 14px;
+  margin: 0;
+}
+.financial-fields legend {
+  font-size: 16px;
+  font-weight: 600;
+  padding: 0 6px;
+}
+.financial-overdue {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  line-height: 1.4;
+}
+.company-profile-form > fieldset {
+  display: grid;
+  gap: 24px;
+  min-width: 0;
+}
+.company-profile-form .button-primary {
+  justify-self: start;
+}
+.application-purpose {
+  margin-bottom: 20px;
+}
+.application-purpose select {
+  width: 100%;
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: white;
+  font: inherit;
+}
+.indicators > div {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 12px;
+}
+.indicators dt,
+.indicators dd {
+  overflow-wrap: anywhere;
+}
+.product-stats > div {
+  padding-left: 10px;
+}
+.product-stats dd {
+  overflow-wrap: normal;
 }

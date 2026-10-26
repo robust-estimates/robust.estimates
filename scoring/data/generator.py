@@ -1,18 +1,3 @@
-"""Генератор синтетических компаний малого бизнеса с меткой дефолта.
-
-У каждой компании есть скрытое «качество» q ~ N(0, 1): чем больше, тем хуже.
-Оно влияет на наблюдаемые признаки (просрочки, налоговые долги, маржа), а дефолт
-считается по скрытой формуле TRUE_LOGIT_COEFS из наблюдаемых признаков плюс
-ненаблюдаемая часть q. Поэтому модель может восстановить факторы, но не идеально.
-
-Направления факторов взяты из ТЗ. Сила факторов, распределения и доля дефолтов —
-допущения: их нужно откалибровать по реальным данным (SBA, статистика ЦБ).
-ИНН начинаются с 00: такого кода региона нет, поэтому синтетические ИНН
-не совпадут с ИНН настоящих компаний.
-
-Запуск: python -m data.generator --n 20000 --seed 42
-"""
-
 import argparse
 from pathlib import Path
 
@@ -23,32 +8,31 @@ from schema import Application, CreditHistory, LegalForm, Purpose
 
 TARGET_DEFAULT_RATE = 0.06
 
-# Раздел ОКВЭД: (доля компаний, сдвиг риска в скрытой формуле)
+
 OKVED_SECTIONS = {
-    "G": (0.35, 0.0),   # торговля
-    "F": (0.12, 0.3),   # строительство
-    "C": (0.10, 0.0),   # обрабатывающие производства
-    "H": (0.10, 0.2),   # транспорт
-    "I": (0.08, 0.4),   # гостиницы и общепит
-    "M": (0.10, -0.2),  # профессиональные услуги
-    "J": (0.07, -0.3),  # IT и связь
-    "S": (0.08, 0.1),   # прочие услуги
+    "G": (0.35, 0.0),
+    "F": (0.12, 0.3),
+    "C": (0.10, 0.0),
+    "H": (0.10, 0.2),
+    "I": (0.08, 0.4),
+    "M": (0.10, -0.2),
+    "J": (0.07, -0.3),
+    "S": (0.08, 0.1),
 }
 REGIONS = ["77", "78", "50", "16", "66", "54", "23", "02"]
 TERMS_MONTHS = [6, 12, 18, 24, 36, 48, 60]
 PURPOSES = [Purpose.WORKING_CAPITAL, Purpose.EQUIPMENT, Purpose.BUSINESS_EXPANSION]
 
-# Лимиты Need.amountMinor из openapi.yaml
+
 MIN_AMOUNT_MINOR = 10_000_000
 MAX_AMOUNT_MINOR = 5_000_000_000
 
-# Скрытая формула дефолта за 12 месяцев (логит). Свободный член подбирается
-# под TARGET_DEFAULT_RATE. Эти коэффициенты — «правильный ответ» для проверки модели.
+
 TRUE_LOGIT_COEFS = {
     "log_business_age_years": -0.4,
     "debt_load": 2.5,
     "margin": -2.0,
-    "company_overdues": 0.5,  # за каждую просрочку 30+, не больше 4
+    "company_overdues": 0.5,
     "owner_overdues": 0.6,
     "overdue_90_plus": 0.8,
     "no_credit_history": 0.3,
@@ -67,7 +51,7 @@ def _inn_check_digit(digits: str, weights: list[int]) -> str:
 
 
 def make_inn(index: int, legal_form: str) -> str:
-    """Синтетический ИНН с верными контрольными цифрами: 10 знаков у ООО, 12 у ИП."""
+
     if legal_form == LegalForm.OOO:
         base = f"00{index:07d}"
         return base + _inn_check_digit(base, [2, 4, 10, 3, 5, 9, 4, 6, 8])
@@ -77,7 +61,7 @@ def make_inn(index: int, legal_form: str) -> str:
 
 
 def _nullable_int(values: np.ndarray, available: np.ndarray) -> pd.api.extensions.ExtensionArray:
-    """Целые с пропусками (pd.NA) там, где данных нет."""
+
     result = pd.array(np.asarray(values).round().astype(np.int64), dtype="Int64")
     result[~available] = pd.NA
     return result
@@ -115,7 +99,7 @@ def generate_companies(n: int, seed: int = 42, target_default_rate: float = TARG
     region = rng.choice(REGIONS, size=n)
     age = np.clip(rng.exponential(50, n), 1, 300).round().astype(int)
 
-    # Выручка логнормальная: у ООО больше, растёт с возрастом бизнеса
+
     median_revenue_rub = np.where(legal_form == LegalForm.IP, 600_000, 2_500_000)
     log_revenue = np.log(median_revenue_rub) + 0.3 * (np.log1p(age / 12) - 1) + rng.normal(0, 0.8, n)
     revenue = (np.exp(log_revenue).round() * 100).astype(np.int64)
@@ -130,8 +114,8 @@ def generate_companies(n: int, seed: int = 42, target_default_rate: float = TARG
     has_tax_debt = rng.random(n) < _sigmoid(-2.8 + 0.8 * q + 0.5 * (age < 12))
     tax_debt = np.where(has_tax_debt, rng.lognormal(np.log(50_000), 1.0, n).round() * 100, 0).astype(np.int64)
 
-    # У ИП кредитная история компании и собственника — одна и та же, поэтому для ИП
-    # отдельной истории компании нет. У молодых ООО её тоже обычно нет.
+
+
     company_available = (legal_form == LegalForm.OOO) & (age >= 6) & (rng.random(n) < 0.75)
     owner_available = rng.random(n) < 0.85
     company_overdues, company_max_days, company_active = _credit_history(
@@ -144,7 +128,7 @@ def generate_companies(n: int, seed: int = 42, target_default_rate: float = TARG
 
     purpose = rng.choice([p.value for p in PURPOSES], size=n, p=[0.5, 0.3, 0.2])
     amount = np.clip(revenue * rng.uniform(1, 8, n), MIN_AMOUNT_MINOR, MAX_AMOUNT_MINOR)
-    amount = (amount // 100_000 * 100_000).astype(np.int64)  # округление до 1000 ₽
+    amount = (amount // 100_000 * 100_000).astype(np.int64)
     term = rng.choice(TERMS_MONTHS, size=n)
     has_collateral = rng.random(n) < 0.25
 
@@ -193,7 +177,7 @@ def generate_companies(n: int, seed: int = 42, target_default_rate: float = TARG
         "requested_term_months": term,
         "purpose": purpose,
         "has_collateral": has_collateral,
-        # Только для проверки модели. Нельзя использовать как признаки: это «ответ».
+
         "true_pd": true_pd,
         "default_12m": default,
     })
@@ -210,7 +194,7 @@ def _history(row, prefix: str) -> CreditHistory | None:
 
 
 def to_application(row) -> Application:
-    """Строка из generate_companies → Application."""
+
     turnover = row["account_turnover_monthly_minor"]
     return Application(
         business_age_months=int(row["business_age_months"]),
