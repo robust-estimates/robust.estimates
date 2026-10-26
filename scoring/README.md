@@ -1,6 +1,6 @@
 # Подключение к backend
 
-gRPC-сервис запускается через корневой Compose. `app/model.py` преобразует protobuf Features в `schema.Application` и вызывает `risk.rules_v1.assess_risk`. Данные ФНС, БКИ и банка приходят из мок-сервиса `mocks/` через application-service; если источник не ответил, поле остаётся None, и балльная карта не штрафует за него. Подробности преобразования признаков, ограничения и команды проверки — в [docs/integration.md](../docs/integration.md).
+gRPC-сервис запускается через корневой Compose. `app/model.py` преобразует protobuf Features в `schema.Application` и вызывает `risk.rules_v1.assess_risk`. Данные ФНС, БКИ и банка приходят из мок-сервиса `mocks/` через application-service; если источник не ответил, поле остаётся None, и балльная карта не штрафует за него. Доступную сумму по DSCR и стресс-сценарию считает `affordability/dscr.py`; формулы — в [docs/integration.md](../docs/integration.md). Подробности преобразования признаков, ограничения и команды проверки — в [docs/integration.md](../docs/integration.md).
 
 Ниже сохранены исходные заметки по развитию скоринга; не все описанные внешние источники и продуктовые сценарии подключены к текущему API.
 

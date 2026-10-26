@@ -182,6 +182,10 @@ def run():
     wait(client, alt, {"ALTERNATIVE"})
     d = request("GET", f'/applications/{alt["id"]}/decision', client)
     assert d["offers"][0]["amountMinor"] < 500000000
+    affordability = request("GET", f'/bank/applications/{alt["id"]}/scoring', employee)["affordability"]
+    assert d["offers"][0]["amountMinor"] == affordability["maxAmountMinor"]
+    assert d["offers"][0]["monthlyPaymentMinor"] <= affordability["maxPaymentMinor"]
+    assert "Платёж по новому кредиту не должен превышать" in d["reason"]
     command(client, alt, "decline", {"reason": "Не подходит"})
     print("PASS alternative offer and client decline")
     manual_company = company(client, age=6, inn="0000090029")

@@ -3018,12 +3018,51 @@ components:
           - APPROVE
           - MANUAL_REVIEW
           - REJECT
+        affordability:
+          $ref: '#/components/schemas/Affordability'
       required:
       - score
       - riskLevel
       - factors
       - modelVersion
       - checks
+    Affordability:
+      type: object
+      additionalProperties: false
+      description: Платёжеспособность по DSCR для запрошенного срока и ставки продукта
+      properties:
+        status:
+          type: string
+          enum:
+          - CALCULATED
+          - INSUFFICIENT_DATA
+        cfadsMinor:
+          type: integer
+          format: int64
+          description: Свободный денежный поток в месяц (выручка минус расходы)
+        maxPaymentMinor:
+          type: integer
+          format: int64
+          minimum: 0
+          description: Наибольший ежемесячный платёж по новому кредиту
+        maxAmountMinor:
+          type: integer
+          format: int64
+          minimum: 0
+          description: Наибольшая сумма кредита при запрошенном сроке, кратна 1000 ₽
+        dscr:
+          type: number
+          minimum: 0
+          description: Отношение денежного потока к платежам с учётом запрошенного кредита
+        reason:
+          type: string
+      required:
+      - status
+      - cfadsMinor
+      - maxPaymentMinor
+      - maxAmountMinor
+      - dscr
+      - reason
     Offer:
       type: object
       additionalProperties: false

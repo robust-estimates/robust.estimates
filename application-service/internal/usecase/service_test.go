@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -223,10 +224,27 @@ func TestScoringDoesNotDirectlyGuaranteeApproval(t *testing.T) {
 	s, r := setup("SCORING")
 	_ = s
 	a := r.apps["app"]
-	a.CompanySnapshot.Data.MonthlyRevenueMinor = 10000000
-	Finish(&a, domain.Scoring{Score: 800, RiskLevel: "LOW"})
-	if a.Status != "ALTERNATIVE" || a.Decision.Offers[0].AmountMinor != 60000000 {
+	Finish(&a, domain.Scoring{Score: 800, RiskLevel: "LOW", Affordability: &domain.Affordability{Status: "CALCULATED", MaxAmountMinor: 60000000, Reason: "Платёж не должен превышать 5 000 ₽ в месяц"}})
+	if a.Status != "ALTERNATIVE" || a.Decision.Offers[0].AmountMinor != 60000000 || !strings.Contains(a.Decision.Reason, "5 000 ₽") {
 		t.Fatal("capacity ignored")
+	}
+
+	a = r.apps["app"]
+	Finish(&a, domain.Scoring{Score: 800, RiskLevel: "LOW", Affordability: &domain.Affordability{Status: "CALCULATED", MaxAmountMinor: 0}})
+	if a.Status != "REJECTED" {
+		t.Fatalf("unaffordable loan not rejected: %s", a.Status)
+	}
+
+	a = r.apps["app"]
+	Finish(&a, domain.Scoring{Score: 800, RiskLevel: "LOW"})
+	if a.Status != "MANUAL_CHECK" || a.Decision != nil {
+		t.Fatal("decision made without affordability")
+	}
+
+	a = r.apps["app"]
+	Finish(&a, domain.Scoring{Score: 800, RiskLevel: "LOW", Affordability: &domain.Affordability{Status: "CALCULATED", MaxAmountMinor: 500000000}})
+	if a.Status != "APPROVED" || a.Decision.Offers[0].AmountMinor != a.Need.AmountMinor {
+		t.Fatalf("affordable loan not approved: %s", a.Status)
 	}
 
 	a = r.apps["app"]

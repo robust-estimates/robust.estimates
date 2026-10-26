@@ -59,13 +59,14 @@ message Loan { string id = 1; string application_id = 2; string offer_id = 3; in
 message Event { string id = 1; string at = 2; string from_status = 3; string to_status = 4; string message = 5; string actor_role = 6; }
 message EventList { repeated Event items = 1; }
 message Check { string source = 1; string status = 2; string summary = 3; string checked_at = 4; }
-message Scoring { int32 score = 1; string risk_level = 2; repeated string factors = 3; string model_version = 4; repeated Check checks = 5; string recommendation = 6; }
+message Affordability { string status = 1; int64 cfads_minor = 2; int64 max_payment_minor = 3; int64 max_amount_minor = 4; double dscr = 5; string reason = 6; }
+message Scoring { int32 score = 1; string risk_level = 2; repeated string factors = 3; string model_version = 4; repeated Check checks = 5; string recommendation = 6; Affordability affordability = 7; }
 message RegistryData { string status = 1; string legal_form = 2; string okved_section = 3; string registered_at = 4; int64 tax_debt_minor = 5; }
 message CreditHistory { bool found = 1; int32 overdue_count_12m = 2; int32 max_overdue_days_24m = 3; int32 active_loans = 4; }
 message CreditReport { CreditHistory company = 1; CreditHistory owner = 2; }
 message AccountData { bool found = 1; int64 turnover_monthly_minor = 2; }
 message Features { int32 business_age_months = 1; int64 monthly_revenue_minor = 2; int64 monthly_expenses_minor = 3; int64 monthly_debt_payments_minor = 4; int64 requested_amount_minor = 5; int32 term_months = 6; reserved 7; RegistryData registry = 8; CreditReport credit_report = 9; AccountData account = 10; }
-message ScoringInput { string scoring_request_id = 1; string application_id = 2; int64 application_version = 3; Features features = 4; }
+message ScoringInput { string scoring_request_id = 1; string application_id = 2; int64 application_version = 3; Features features = 4; Product product = 5; }
 message ScoringOutput { string scoring_request_id = 1; string application_id = 2; int64 application_version = 3; Scoring scoring = 4; }
 message FeedItem { string id = 1; string title = 2; string body = 3; string reason = 4; string created_at = 5; string application_id = 6; }
 message FeedList { repeated FeedItem items = 1; }

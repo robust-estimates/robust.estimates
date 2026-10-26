@@ -50,3 +50,14 @@ class ModelTests(unittest.TestCase):
         result = RuleModel().evaluate(pb.Features(business_age_months=36))
         self.assertEqual(result.level, "HIGH")
         self.assertTrue(any("Нет выручки" in factor for factor in result.factors))
+
+    def test_affordability_uses_requested_term_and_product_rate(self):
+        product = pb.Product(id="unsecured", annual_rate_bps=1690, payment_type="ANNUITY")
+        features = pb.Features(business_age_months=36, monthly_revenue_minor=30000000, monthly_expenses_minor=15000000, requested_amount_minor=500000000, term_months=12)
+        result = RuleModel().evaluate(features, product)
+        self.assertEqual(result.affordability.status, "CALCULATED")
+        self.assertEqual(result.affordability.max_payment_minor, 12000000)
+        self.assertLess(result.affordability.max_amount_minor, 500000000)
+
+    def test_no_product_means_no_affordability(self):
+        self.assertIsNone(RuleModel().evaluate(pb.Features(business_age_months=36, monthly_revenue_minor=1)).affordability)

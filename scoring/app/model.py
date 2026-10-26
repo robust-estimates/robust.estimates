@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 
+from affordability.dscr import Affordability, assess
 from risk.rules_v1 import MODEL_VERSION, assess_risk
 from schema import Application, CreditHistory, LegalForm
 
@@ -10,6 +11,7 @@ class Risk:
     level: str
     factors: tuple[str, ...]
     recommendation: str
+    affordability: Affordability | None = None
 
 
 def _present(message, field: str):
@@ -30,7 +32,7 @@ def _history(report, field: str) -> CreditHistory | None:
 class RuleModel:
     version = MODEL_VERSION
 
-    def evaluate(self, features):
+    def evaluate(self, features, product=None):
         registry = _present(features, "registry")
         report = _present(features, "credit_report")
         account = _present(features, "account")
@@ -54,4 +56,10 @@ class RuleModel:
         level = result.risk_level.value
         recommendation = {"LOW": "APPROVE", "MEDIUM": "MANUAL_REVIEW", "HIGH": "REJECT"}[level]
 
-        return Risk(result.score, level, tuple(factor.text for factor in result.factors), recommendation)
+        affordability = None
+        if product is not None:
+            affordability = assess(features.monthly_revenue_minor, features.monthly_expenses_minor,
+                                   features.monthly_debt_payments_minor, features.requested_amount_minor,
+                                   features.term_months, product.annual_rate_bps, product.payment_type)
+
+        return Risk(result.score, level, tuple(factor.text for factor in result.factors), recommendation, affordability)

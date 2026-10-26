@@ -35,6 +35,12 @@ def authenticate(context):
         context.abort(grpc.StatusCode.UNAUTHENTICATED, "Invalid service identity")
 
 
+def affordability_message(a):
+    if a is None:
+        return None
+    return pb.Affordability(status=a.status, cfads_minor=a.cfads_minor, max_payment_minor=a.max_payment_minor, max_amount_minor=a.max_amount_minor, dscr=a.dscr, reason=a.reason)
+
+
 class Scoring(rpc.ScoringServiceServicer):
     def __init__(self):
         self.model = RuleModel()
@@ -49,9 +55,9 @@ class Scoring(rpc.ScoringServiceServicer):
         if f.business_age_months < 0 or any(value < 0 or value > 10000000000000 for value in (f.monthly_revenue_minor, f.monthly_expenses_minor, f.monthly_debt_payments_minor)):
             context.abort(grpc.StatusCode.INVALID_ARGUMENT, "Invalid features")
 
-        risk = self.model.evaluate(f)
+        risk = self.model.evaluate(f, request.product if request.HasField("product") else None)
 
-        return pb.ScoringOutput(scoring_request_id=request.scoring_request_id, application_id=request.application_id, application_version=request.application_version, scoring=pb.Scoring(score=risk.score, risk_level=risk.level, factors=risk.factors, model_version=self.model.version, recommendation=risk.recommendation))
+        return pb.ScoringOutput(scoring_request_id=request.scoring_request_id, application_id=request.application_id, application_version=request.application_version, scoring=pb.Scoring(score=risk.score, risk_level=risk.level, factors=risk.factors, model_version=self.model.version, recommendation=risk.recommendation, affordability=affordability_message(risk.affordability)))
 
 
 def main():

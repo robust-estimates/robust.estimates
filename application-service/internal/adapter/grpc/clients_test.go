@@ -80,6 +80,9 @@ func TestFeaturesKeepExternalDataInProto(t *testing.T) {
 	if f.Registry.GetOkvedSection() != "G" || f.Registry.GetTaxDebtMinor() != 500 || f.CreditReport.GetOwner().GetOverdueCount_12M() != 2 {
 		t.Fatalf("external data lost in proto: %v", f)
 	}
+	if out.Product != nil {
+		t.Fatal("missing product must stay unset")
+	}
 	if f.CreditReport.Company != nil || f.Account != nil {
 		t.Fatal("missing sources must stay unset")
 	}

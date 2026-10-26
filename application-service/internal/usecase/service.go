@@ -710,7 +710,7 @@ func (s *Service) Process(ctx context.Context) error {
 	}
 
 	features, checks := s.collect(ctx, a)
-	score, scoreErr := s.Scorer.Evaluate(ctx, domain.ScoringInput{ScoringRequestID: job.ID, ApplicationID: a.ID, ApplicationVersion: job.Revision, Features: features})
+	score, scoreErr := s.Scorer.Evaluate(ctx, domain.ScoringInput{ScoringRequestID: job.ID, ApplicationID: a.ID, ApplicationVersion: job.Revision, Features: features, Product: &a.ProductSnapshot})
 	if scoreErr != nil && job.Attempts < 3 {
 		return s.Repo.Complete(ctx, *job, nil, true)
 	}
@@ -773,20 +773,26 @@ func Finish(a *domain.Aggregate, score domain.Scoring) {
 		return
 	}
 
+	if score.Affordability == nil || score.Affordability.Status != "CALCULATED" {
+		a.Recommendation = "MANUAL_REVIEW"
+		event(a, "MANUAL_CHECK", "Платёжеспособность не рассчитана, требуется решение сотрудника", "SYSTEM")
+		return
+	}
+
 	amount := a.Need.AmountMinor
-	capacity := a.CompanySnapshot.Data.MonthlyRevenueMinor * 6
+	capacity := score.Affordability.MaxAmountMinor
 	outcome := "APPROVED"
-	reason := "Риск и условия продукта соответствуют правилам демонстрационной модели"
+	reason := "Риск и платёжеспособность соответствуют условиям продукта. " + score.Affordability.Reason
 	offers := []domain.Offer{}
 	if capacity < amount {
 		amount = capacity
 		outcome = "ALTERNATIVE"
-		reason = "Предложена меньшая сумма с учётом оборота бизнеса"
+		reason = "Предложена меньшая сумма. " + score.Affordability.Reason
 	}
 
 	if amount < a.ProductSnapshot.MinAmountMinor {
 		outcome = "REJECTED"
-		reason = "Доступная сумма ниже минимального размера продукта"
+		reason = "Доступная сумма ниже минимального размера продукта. " + score.Affordability.Reason
 	} else {
 		offers = append(offers, domain.Offer{ID: platform.ID(), ProductID: a.ProductID, AmountMinor: amount, TermMonths: a.Need.TermMonths, AnnualRateBps: a.ProductSnapshot.AnnualRateBps, MonthlyPaymentMinor: domain.Payment(amount, a.Need.TermMonths, a.ProductSnapshot.AnnualRateBps), ExpiresAt: time.Now().UTC().Add(7 * 24 * time.Hour).Format(time.RFC3339Nano), Collateral: a.ProductSnapshot.Collateral})
 	}

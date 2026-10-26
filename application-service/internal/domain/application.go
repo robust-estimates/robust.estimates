@@ -189,12 +189,22 @@ type Check struct {
 }
 
 type Scoring struct {
-	Score          int32    `json:"score"`
-	RiskLevel      string   `json:"riskLevel"`
-	Factors        []string `json:"factors"`
-	ModelVersion   string   `json:"modelVersion"`
-	Checks         []Check  `json:"checks"`
-	Recommendation string   `json:"recommendation"`
+	Score          int32          `json:"score"`
+	RiskLevel      string         `json:"riskLevel"`
+	Factors        []string       `json:"factors"`
+	ModelVersion   string         `json:"modelVersion"`
+	Checks         []Check        `json:"checks"`
+	Recommendation string         `json:"recommendation"`
+	Affordability  *Affordability `json:"affordability,omitempty"`
+}
+
+type Affordability struct {
+	Status          string  `json:"status"`
+	CfadsMinor      int64   `json:"cfadsMinor"`
+	MaxPaymentMinor int64   `json:"maxPaymentMinor"`
+	MaxAmountMinor  int64   `json:"maxAmountMinor"`
+	Dscr            float64 `json:"dscr"`
+	Reason          string  `json:"reason"`
 }
 
 type Features struct {
@@ -239,6 +249,7 @@ type ScoringInput struct {
 	ApplicationID      string   `json:"applicationId"`
 	ApplicationVersion int64    `json:"applicationVersion"`
 	Features           Features `json:"features"`
+	Product            *Product `json:"product,omitempty"`
 }
 
 type Aggregate struct {

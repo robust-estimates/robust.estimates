@@ -186,7 +186,7 @@ test('альтернативное предложение принимается
   await submitApplication(page)
   await expect(page.locator('.status-badge')).toHaveText('Другие условия', { timeout: 30_000 })
   await page.getByRole('button', { name: 'Ознакомиться', exact: true }).click()
-  await expect(page.getByRole('dialog')).toContainText('1 800 000')
+  await expect(page.getByRole('dialog')).toContainText('1 316 000')
   await page.getByRole('button', { name: 'Принять предложение', exact: true }).click()
   await expect(page.locator('.status-badge')).toHaveText('Принято')
   await page.reload()
