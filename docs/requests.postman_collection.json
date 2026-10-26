@@ -1,0 +1,2749 @@
+{
+  "info": {
+    "name": "Коллекция запросов — robust.estimates",
+    "description": "Примеры всех 34 операций OpenAPI 1.2.0. Инструкция: docs/requests.md. Выполняйте запросы по сценариям, выбирайте файлы вручную и ожидайте асинхронный скоринг. Коллекция создаёт синтетические данные в текущем API.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080/api/v1",
+      "type": "string"
+    },
+    {
+      "key": "demoPassword",
+      "value": "Demo-Credit-2026!",
+      "type": "string"
+    },
+    {
+      "key": "clientToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "employeeToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "companyId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "productId",
+      "value": "unsecured",
+      "type": "string"
+    },
+    {
+      "key": "applicationId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "applicationVersion",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "financialDocumentId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "bankDocumentId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "temporaryDocumentId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "offerId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "manualCompanyId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "manualApplicationId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "manualApplicationVersion",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "requestItemId",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "01. Авторизация",
+      "description": "Начните с входа клиента и сотрудника. Регистрация нового клиента необязательна. После неё запросы выполняются от его имени до следующего входа клиента.",
+      "item": [
+        {
+          "name": "Войти клиентом",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/auth/login",
+            "description": "",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"login\": \"client@demo.local\",\n  \"password\": \"{{demoPassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Ожидаемый HTTP-статус\", function () { pm.expect(pm.response.code).to.be.oneOf([200]); });",
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  const data = pm.response.json();",
+                  "  pm.collectionVariables.set(\"clientToken\", data.accessToken);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Войти сотрудником",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/auth/login",
+            "description": "",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"login\": \"employee@demo.local\",\n  \"password\": \"{{demoPassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Ожидаемый HTTP-статус\", function () { pm.expect(pm.response.code).to.be.oneOf([200]); });",
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  const data = pm.response.json();",
+                  "  pm.collectionVariables.set(\"employeeToken\", data.accessToken);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Текущий пользователь",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/me",
+            "description": "",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{clientToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Ожидаемый HTTP-статус\", function () { pm.expect(pm.response.code).to.be.oneOf([200]); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Зарегистрировать нового клиента — необязательно",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/auth/register",
+            "description": "Синтетический аккаунт. После регистрации создавайте компанию заново: ресурсы прежнего клиента ему недоступны.",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"login\": \"reviewer-{{$guid}}@example.com\",\n  \"displayName\": \"Тестовый клиент\",\n  \"password\": \"Demo-Review-2026!\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Ожидаемый HTTP-статус\", function () { pm.expect(pm.response.code).to.be.oneOf([201]); });",
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  const data = pm.response.json();",
+                  "  pm.collectionVariables.set(\"clientToken\", data.accessToken);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "02. Компания",
+      "description": "Синтетические месячные суммы заданы в копейках. PATCH заменяет весь профиль, поэтому приведён полный набор обязательных полей.",
+      "item": [
+        {
+          "name": "Создать компанию",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/companies",
+            "description": "",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{clientToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"inn\": \"7700000000\",\n  \"name\": \"Синтетическая компания\",\n  \"businessAgeMonths\": 36,\n  \"monthlyRevenueMinor\": 300000000,\n  \"monthlyExpensesMinor\": 150000000,\n  \"monthlyDebtPaymentsMinor\": 0,\n  \"hasOverdueDebt\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Ожидаемый HTTP-статус\", function () { pm.expect(pm.response.code).to.be.oneOf([201]); });",
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  const data = pm.response.json();",
+                  "  pm.collectionVariables.set(\"companyId\", data.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Мои компании",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/companies",
+            "description": "",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{clientToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Ожидаемый HTTP-статус\", function () { pm.expect(pm.response.code).to.be.oneOf([200]); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Получить компанию",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/companies/{{companyId}}",
+            "description": "",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{clientToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Ожидаемый HTTP-статус\", function () { pm.expect(pm.response.code).to.be.oneOf([200]); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Обновить профиль компании",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/companies/{{companyId}}",
+            "description": "",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{clientToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"inn\": \"7700000000\",\n  \"name\": \"Синтетическая компания — обновлённый профиль\",\n  \"businessAgeMonths\": 36,\n  \"monthlyRevenueMinor\": 300000000,\n  \"monthlyExpensesMinor\": 150000000,\n  \"monthlyDebtPaymentsMinor\": 0,\n  \"hasOverdueDebt\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Ожидаемый HTTP-статус\", function () { pm.expect(pm.response.code).to.be.oneOf([200]); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Проверить компанию — мок ФНС",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}"
+              }
+            ],
+            "url": "{{baseUrl}}/companies/{{companyId}}/verification",
+            "description": "",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{clientToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Ожидаемый HTTP-статус\", function () { pm.expect(pm.response.code).to.be.oneOf([200]); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "03. Каталог и подбор",
+      "description": "Для основного маршрута используется unsecured. При изменении productId проверьте обязательные документы и ограничения продукта.",
+      "item": [
+        {
+          "name": "Каталог продуктов",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/products",
+            "description": "",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{clientToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Ожидаемый HTTP-статус\", function () { pm.expect(pm.response.code).to.be.oneOf([200]); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Карточка продукта",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/products/{{productId}}",
+            "description": "",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{clientToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Ожидаемый HTTP-статус\", function () { pm.expect(pm.response.code).to.be.oneOf([200]); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Подобрать продукты",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/recommendations",
+            "description": "",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{clientToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"companyId\": \"{{companyId}}\",\n  \"amountMinor\": 100000000,\n  \"termMonths\": 12,\n  \"purpose\": \"WORKING_CAPITAL\",\n  \"collateral\": \"NONE\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Ожидаемый HTTP-статус\", function () { pm.expect(pm.response.code).to.be.oneOf([200]); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Рассчитать платёж",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/calculations",
+            "description": "",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{clientToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"productId\": \"{{productId}}\",\n  \"amountMinor\": 100000000,\n  \"termMonths\": 12\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Ожидаемый HTTP-статус\", function () { pm.expect(pm.response.code).to.be.oneOf([200]); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "04. Черновик и документы",
+      "description": "Выполняйте по порядку. Для трёх загрузок выберите файл в form-data; временный документ OTHER демонстрирует удаление до подачи заявки.",
+      "item": [
+        {
+          "name": "Создать черновик",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/applications",
+            "description": "",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{clientToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"need\": {\n    \"companyId\": \"{{companyId}}\",\n    \"amountMinor\": 100000000,\n    \"termMonths\": 12,\n    \"purpose\": \"WORKING_CAPITAL\",\n    \"description\": \"Пополнение оборотных средств\"\n  },\n  \"productId\": \"{{productId}}\",\n  \"consents\": {\n    \"personalDataProcessing\": true,\n    \"creditHistoryCheck\": true\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Ожидаемый HTTP-статус\", function () { pm.expect(pm.response.code).to.be.oneOf([201]); });",
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  const data = pm.response.json();",
+                  "  pm.collectionVariables.set(\"applicationId\", data.id);",
+                  "  pm.collectionVariables.set(\"applicationVersion\", data.version);",
+                  "  console.log(\"Статус заявки:\", data.status, \"Версия:\", data.version);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Мои заявки",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/applications?offset=0&limit=20",
+            "description": "",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{clientToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Ожидаемый HTTP-статус\", function () { pm.expect(pm.response.code).to.be.oneOf([200]); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Обновить версию и статус заявки",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/applications/{{applicationId}}",
+            "description": "Повторяйте при SCORING до итогового статуса. Запрос сохраняет актуальную версию для If-Match.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{clientToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Ожидаемый HTTP-статус\", function () { pm.expect(pm.response.code).to.be.oneOf([200]); });",
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  const data = pm.response.json();",
+                  "  pm.collectionVariables.set(\"applicationId\", data.id);",
+                  "  pm.collectionVariables.set(\"applicationVersion\", data.version);",
+                  "  console.log(\"Статус заявки:\", data.status, \"Версия:\", data.version);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Обновить черновик",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}"
+              },
+              {
+                "key": "If-Match",
+                "value": "\"{{applicationVersion}}\""
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/applications/{{applicationId}}",
+            "description": "",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{clientToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"need\": {\n    \"companyId\": \"{{companyId}}\",\n    \"amountMinor\": 100000000,\n    \"termMonths\": 12,\n    \"purpose\": \"WORKING_CAPITAL\",\n    \"description\": \"Пополнение оборотных средств\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Ожидаемый HTTP-статус\", function () { pm.expect(pm.response.code).to.be.oneOf([200]); });",
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  const data = pm.response.json();",
+                  "  pm.collectionVariables.set(\"applicationId\", data.id);",
+                  "  pm.collectionVariables.set(\"applicationVersion\", data.version);",
+                  "  console.log(\"Статус заявки:\", data.status, \"Версия:\", data.version);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Загрузить финансовый отчёт",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}"
+              },
+              {
+                "key": "If-Match",
+                "value": "\"{{applicationVersion}}\""
+              }
+            ],
+            "url": "{{baseUrl}}/applications/{{applicationId}}/documents",
+            "description": "Выберите локальный непустой PDF/JPEG/PNG до 10 МиБ в Body → form-data → file. После загрузки выполните GET заявки для обновления If-Match. Content-Type multipart задаётся Postman автоматически.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{clientToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "type",
+                  "value": "FINANCIAL_REPORT",
+                  "type": "text"
+                },
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": ""
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Ожидаемый HTTP-статус\", function () { pm.expect(pm.response.code).to.be.oneOf([201]); });",
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  const data = pm.response.json();",
+                  "  pm.collectionVariables.set(\"financialDocumentId\", data.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Обновить версию после финансового отчёта",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/applications/{{applicationId}}",
+            "description": "Повторяйте при SCORING до итогового статуса. Запрос сохраняет актуальную версию для If-Match.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{clientToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Ожидаемый HTTP-статус\", function () { pm.expect(pm.response.code).to.be.oneOf([200]); });",
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  const data = pm.response.json();",
+                  "  pm.collectionVariables.set(\"applicationId\", data.id);",
+                  "  pm.collectionVariables.set(\"applicationVersion\", data.version);",
+                  "  console.log(\"Статус заявки:\", data.status, \"Версия:\", data.version);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Загрузить выписку по счёту",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}"
+              },
+              {
+                "key": "If-Match",
+                "value": "\"{{applicationVersion}}\""
+              }
+            ],
+            "url": "{{baseUrl}}/applications/{{applicationId}}/documents",
+            "description": "Выберите локальный непустой PDF/JPEG/PNG до 10 МиБ в Body → form-data → file. После загрузки выполните GET заявки для обновления If-Match. Content-Type multipart задаётся Postman автоматически.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{clientToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "type",
+                  "value": "BANK_STATEMENT",
+                  "type": "text"
+                },
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": ""
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Ожидаемый HTTP-статус\", function () { pm.expect(pm.response.code).to.be.oneOf([201]); });",
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  const data = pm.response.json();",
+                  "  pm.collectionVariables.set(\"bankDocumentId\", data.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Обновить версию после выписки",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/applications/{{applicationId}}",
+            "description": "Повторяйте при SCORING до итогового статуса. Запрос сохраняет актуальную версию для If-Match.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{clientToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Ожидаемый HTTP-статус\", function () { pm.expect(pm.response.code).to.be.oneOf([200]); });",
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  const data = pm.response.json();",
+                  "  pm.collectionVariables.set(\"applicationId\", data.id);",
+                  "  pm.collectionVariables.set(\"applicationVersion\", data.version);",
+                  "  console.log(\"Статус заявки:\", data.status, \"Версия:\", data.version);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Загрузить временный документ для удаления",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}"
+              },
+              {
+                "key": "If-Match",
+                "value": "\"{{applicationVersion}}\""
+              }
+            ],
+            "url": "{{baseUrl}}/applications/{{applicationId}}/documents",
+            "description": "Выберите локальный непустой PDF/JPEG/PNG до 10 МиБ в Body → form-data → file. После загрузки выполните GET заявки для обновления If-Match. Content-Type multipart задаётся Postman автоматически.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{clientToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "type",
+                  "value": "OTHER",
+                  "type": "text"
+                },
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": ""
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Ожидаемый HTTP-статус\", function () { pm.expect(pm.response.code).to.be.oneOf([201]); });",
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  const data = pm.response.json();",
+                  "  pm.collectionVariables.set(\"temporaryDocumentId\", data.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Обновить версию перед удалением",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/applications/{{applicationId}}",
+            "description": "Повторяйте при SCORING до итогового статуса. Запрос сохраняет актуальную версию для If-Match.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{clientToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Ожидаемый HTTP-статус\", function () { pm.expect(pm.response.code).to.be.oneOf([200]); });",
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  const data = pm.response.json();",
+                  "  pm.collectionVariables.set(\"applicationId\", data.id);",
+                  "  pm.collectionVariables.set(\"applicationVersion\", data.version);",
+                  "  console.log(\"Статус заявки:\", data.status, \"Версия:\", data.version);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Список документов",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/applications/{{applicationId}}/documents",
+            "description": "",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{clientToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Ожидаемый HTTP-статус\", function () { pm.expect(pm.response.code).to.be.oneOf([200]); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Скачать финансовый отчёт",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/applications/{{applicationId}}/documents/{{financialDocumentId}}/download",
+            "description": "Ответ содержит исходные байты файла. В Postman используйте Save Response для сохранения содержимого.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{clientToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Ожидаемый HTTP-статус\", function () { pm.expect(pm.response.code).to.be.oneOf([200]); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Удалить временный документ",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}"
+              },
+              {
+                "key": "If-Match",
+                "value": "\"{{applicationVersion}}\""
+              }
+            ],
+            "url": "{{baseUrl}}/applications/{{applicationId}}/documents/{{temporaryDocumentId}}",
+            "description": "",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{clientToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Ожидаемый HTTP-статус\", function () { pm.expect(pm.response.code).to.be.oneOf([204]); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Обновить версию после удаления",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/applications/{{applicationId}}",
+            "description": "Повторяйте при SCORING до итогового статуса. Запрос сохраняет актуальную версию для If-Match.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{clientToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Ожидаемый HTTP-статус\", function () { pm.expect(pm.response.code).to.be.oneOf([200]); });",
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  const data = pm.response.json();",
+                  "  pm.collectionVariables.set(\"applicationId\", data.id);",
+                  "  pm.collectionVariables.set(\"applicationVersion\", data.version);",
+                  "  console.log(\"Статус заявки:\", data.status, \"Версия:\", data.version);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Проверить комплектность",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}"
+              },
+              {
+                "key": "If-Match",
+                "value": "\"{{applicationVersion}}\""
+              }
+            ],
+            "url": "{{baseUrl}}/applications/{{applicationId}}/validation",
+            "description": "",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{clientToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Ожидаемый HTTP-статус\", function () { pm.expect(pm.response.code).to.be.oneOf([200]); });",
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  const data = pm.response.json();",
+                  "  pm.test(\"Комплект готов к отправке\", function () { pm.expect(data.valid).to.eql(true); });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "05. Решение, принятие и выдача",
+      "description": "После отправки повторяйте GET статуса до выхода из SCORING. Для исходных данных основного маршрута ожидается APPROVED. Затем получайте решение и принимайте offerId.",
+      "item": [
+        {
+          "name": "Отправить заявку",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}"
+              },
+              {
+                "key": "If-Match",
+                "value": "\"{{applicationVersion}}\""
+              }
+            ],
+            "url": "{{baseUrl}}/applications/{{applicationId}}/submit",
+            "description": "",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{clientToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Ожидаемый HTTP-статус\", function () { pm.expect(pm.response.code).to.be.oneOf([202]); });",
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  const data = pm.response.json();",
+                  "  pm.collectionVariables.set(\"applicationId\", data.id);",
+                  "  pm.collectionVariables.set(\"applicationVersion\", data.version);",
+                  "  console.log(\"Статус заявки:\", data.status, \"Версия:\", data.version);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Дождаться решения — повторять GET при SCORING",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/applications/{{applicationId}}",
+            "description": "Повторяйте при SCORING до итогового статуса. Запрос сохраняет актуальную версию для If-Match.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{clientToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Ожидаемый HTTP-статус\", function () { pm.expect(pm.response.code).to.be.oneOf([200]); });",
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  const data = pm.response.json();",
+                  "  pm.collectionVariables.set(\"applicationId\", data.id);",
+                  "  pm.collectionVariables.set(\"applicationVersion\", data.version);",
+                  "  console.log(\"Статус заявки:\", data.status, \"Версия:\", data.version);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Получить решение и сохранить offerId",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/applications/{{applicationId}}/decision",
+            "description": "",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{clientToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Ожидаемый HTTP-статус\", function () { pm.expect(pm.response.code).to.be.oneOf([200]); });",
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  const data = pm.response.json();",
+                  "  if (data.offers && data.offers.length) pm.collectionVariables.set(\"offerId\", data.offers[0].id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Принять предложение",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}"
+              },
+              {
+                "key": "If-Match",
+                "value": "\"{{applicationVersion}}\""
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/applications/{{applicationId}}/accept",
+            "description": "",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{clientToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"offerId\": \"{{offerId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Ожидаемый HTTP-статус\", function () { pm.expect(pm.response.code).to.be.oneOf([200]); });",
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  const data = pm.response.json();",
+                  "  pm.collectionVariables.set(\"applicationId\", data.id);",
+                  "  pm.collectionVariables.set(\"applicationVersion\", data.version);",
+                  "  console.log(\"Статус заявки:\", data.status, \"Версия:\", data.version);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Смоделировать выдачу",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}"
+              },
+              {
+                "key": "If-Match",
+                "value": "\"{{applicationVersion}}\""
+              }
+            ],
+            "url": "{{baseUrl}}/applications/{{applicationId}}/issuance",
+            "description": "",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{clientToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Ожидаемый HTTP-статус\", function () { pm.expect(pm.response.code).to.be.oneOf([201]); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Получить выданную заявку",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/applications/{{applicationId}}",
+            "description": "Повторяйте при SCORING до итогового статуса. Запрос сохраняет актуальную версию для If-Match.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{clientToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Ожидаемый HTTP-статус\", function () { pm.expect(pm.response.code).to.be.oneOf([200]); });",
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  const data = pm.response.json();",
+                  "  pm.collectionVariables.set(\"applicationId\", data.id);",
+                  "  pm.collectionVariables.set(\"applicationVersion\", data.version);",
+                  "  console.log(\"Статус заявки:\", data.status, \"Версия:\", data.version);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "История заявки",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/applications/{{applicationId}}/history",
+            "description": "",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{clientToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Ожидаемый HTTP-статус\", function () { pm.expect(pm.response.code).to.be.oneOf([200]); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Запросы дополнительных сведений",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/applications/{{applicationId}}/information-requests",
+            "description": "",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{clientToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Ожидаемый HTTP-статус\", function () { pm.expect(pm.response.code).to.be.oneOf([200]); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Персональная лента",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/feed",
+            "description": "",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{clientToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Ожидаемый HTTP-статус\", function () { pm.expect(pm.response.code).to.be.oneOf([200]); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "06. Банковский обзор",
+      "description": "Доступен с токеном EMPLOYEE. Карточку и скоринг можно смотреть для заявки основного маршрута; ручные команды вынесены в отдельный сценарий.",
+      "item": [
+        {
+          "name": "Очередь заявок",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/bank/applications?offset=0&limit=20",
+            "description": "",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{employeeToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Ожидаемый HTTP-статус\", function () { pm.expect(pm.response.code).to.be.oneOf([200]); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Карточка заявки сотрудника",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/bank/applications/{{applicationId}}",
+            "description": "",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{employeeToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Ожидаемый HTTP-статус\", function () { pm.expect(pm.response.code).to.be.oneOf([200]); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Результат скоринга",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/bank/applications/{{applicationId}}/scoring",
+            "description": "",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{employeeToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Ожидаемый HTTP-статус\", function () { pm.expect(pm.response.code).to.be.oneOf([200]); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "07. Ручное рассмотрение и запрос сведений",
+      "description": "Самостоятельная ветка с отдельными ID. Компания с просрочкой направляет заявку на MANUAL_CHECK. Заполните file в каждой загрузке. При SCORING повторяйте GET статуса перед банковскими действиями.",
+      "item": [
+        {
+          "name": "Создать компанию для ручного рассмотрения",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/companies",
+            "description": "",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{clientToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"inn\": \"7700000000\",\n  \"name\": \"Синтетическая компания — ручное рассмотрение\",\n  \"businessAgeMonths\": 6,\n  \"monthlyRevenueMinor\": 300000000,\n  \"monthlyExpensesMinor\": 150000000,\n  \"monthlyDebtPaymentsMinor\": 0,\n  \"hasOverdueDebt\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Ожидаемый HTTP-статус\", function () { pm.expect(pm.response.code).to.be.oneOf([201]); });",
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  const data = pm.response.json();",
+                  "  pm.collectionVariables.set(\"manualCompanyId\", data.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Проверить компанию ручного маршрута",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}"
+              }
+            ],
+            "url": "{{baseUrl}}/companies/{{manualCompanyId}}/verification",
+            "description": "",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{clientToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Ожидаемый HTTP-статус\", function () { pm.expect(pm.response.code).to.be.oneOf([200]); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Создать заявку ручного маршрута",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/applications",
+            "description": "",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{clientToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"need\": {\n    \"companyId\": \"{{manualCompanyId}}\",\n    \"amountMinor\": 100000000,\n    \"termMonths\": 12,\n    \"purpose\": \"WORKING_CAPITAL\",\n    \"description\": \"Пополнение оборотных средств\"\n  },\n  \"productId\": \"{{productId}}\",\n  \"consents\": {\n    \"personalDataProcessing\": true,\n    \"creditHistoryCheck\": true\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Ожидаемый HTTP-статус\", function () { pm.expect(pm.response.code).to.be.oneOf([201]); });",
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  const data = pm.response.json();",
+                  "  pm.collectionVariables.set(\"manualApplicationId\", data.id);",
+                  "  pm.collectionVariables.set(\"manualApplicationVersion\", data.version);",
+                  "  console.log(\"Статус заявки:\", data.status, \"Версия:\", data.version);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Ручной маршрут — финансовый отчёт",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}"
+              },
+              {
+                "key": "If-Match",
+                "value": "\"{{manualApplicationVersion}}\""
+              }
+            ],
+            "url": "{{baseUrl}}/applications/{{manualApplicationId}}/documents",
+            "description": "Выберите локальный непустой PDF/JPEG/PNG до 10 МиБ в Body → form-data → file. После загрузки выполните GET заявки для обновления If-Match. Content-Type multipart задаётся Postman автоматически.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{clientToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "type",
+                  "value": "FINANCIAL_REPORT",
+                  "type": "text"
+                },
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": ""
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Ожидаемый HTTP-статус\", function () { pm.expect(pm.response.code).to.be.oneOf([201]); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Ручной маршрут — обновить версию после отчёта",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/applications/{{manualApplicationId}}",
+            "description": "Повторяйте при SCORING до итогового статуса. Запрос сохраняет актуальную версию для If-Match.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{clientToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Ожидаемый HTTP-статус\", function () { pm.expect(pm.response.code).to.be.oneOf([200]); });",
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  const data = pm.response.json();",
+                  "  pm.collectionVariables.set(\"manualApplicationId\", data.id);",
+                  "  pm.collectionVariables.set(\"manualApplicationVersion\", data.version);",
+                  "  console.log(\"Статус заявки:\", data.status, \"Версия:\", data.version);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Ручной маршрут — выписка",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}"
+              },
+              {
+                "key": "If-Match",
+                "value": "\"{{manualApplicationVersion}}\""
+              }
+            ],
+            "url": "{{baseUrl}}/applications/{{manualApplicationId}}/documents",
+            "description": "Выберите локальный непустой PDF/JPEG/PNG до 10 МиБ в Body → form-data → file. После загрузки выполните GET заявки для обновления If-Match. Content-Type multipart задаётся Postman автоматически.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{clientToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "type",
+                  "value": "BANK_STATEMENT",
+                  "type": "text"
+                },
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": ""
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Ожидаемый HTTP-статус\", function () { pm.expect(pm.response.code).to.be.oneOf([201]); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Ручной маршрут — обновить версию после выписки",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/applications/{{manualApplicationId}}",
+            "description": "Повторяйте при SCORING до итогового статуса. Запрос сохраняет актуальную версию для If-Match.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{clientToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Ожидаемый HTTP-статус\", function () { pm.expect(pm.response.code).to.be.oneOf([200]); });",
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  const data = pm.response.json();",
+                  "  pm.collectionVariables.set(\"manualApplicationId\", data.id);",
+                  "  pm.collectionVariables.set(\"manualApplicationVersion\", data.version);",
+                  "  console.log(\"Статус заявки:\", data.status, \"Версия:\", data.version);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Отправить на ручное рассмотрение",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}"
+              },
+              {
+                "key": "If-Match",
+                "value": "\"{{manualApplicationVersion}}\""
+              }
+            ],
+            "url": "{{baseUrl}}/applications/{{manualApplicationId}}/submit",
+            "description": "",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{clientToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Ожидаемый HTTP-статус\", function () { pm.expect(pm.response.code).to.be.oneOf([202]); });",
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  const data = pm.response.json();",
+                  "  pm.collectionVariables.set(\"manualApplicationId\", data.id);",
+                  "  pm.collectionVariables.set(\"manualApplicationVersion\", data.version);",
+                  "  console.log(\"Статус заявки:\", data.status, \"Версия:\", data.version);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Дождаться MANUAL_CHECK — повторять GET при SCORING",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/applications/{{manualApplicationId}}",
+            "description": "Повторяйте при SCORING до итогового статуса. Запрос сохраняет актуальную версию для If-Match.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{clientToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Ожидаемый HTTP-статус\", function () { pm.expect(pm.response.code).to.be.oneOf([200]); });",
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  const data = pm.response.json();",
+                  "  pm.collectionVariables.set(\"manualApplicationId\", data.id);",
+                  "  pm.collectionVariables.set(\"manualApplicationVersion\", data.version);",
+                  "  console.log(\"Статус заявки:\", data.status, \"Версия:\", data.version);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Обзор ручной заявки",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/bank/applications/{{manualApplicationId}}",
+            "description": "",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{employeeToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Ожидаемый HTTP-статус\", function () { pm.expect(pm.response.code).to.be.oneOf([200]); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Запросить дополнительные сведения",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}"
+              },
+              {
+                "key": "If-Match",
+                "value": "\"{{manualApplicationVersion}}\""
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/bank/applications/{{manualApplicationId}}/decision",
+            "description": "",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{employeeToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"outcome\": \"NEEDS_INFO\",\n  \"reason\": \"Нужна дополнительная выписка для проверки оборотов\",\n  \"items\": [\n    {\n      \"title\": \"Дополнительная выписка\",\n      \"type\": \"OTHER\",\n      \"required\": true\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Ожидаемый HTTP-статус\", function () { pm.expect(pm.response.code).to.be.oneOf([200]); });",
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  const data = pm.response.json();",
+                  "  pm.collectionVariables.set(\"manualApplicationId\", data.id);",
+                  "  pm.collectionVariables.set(\"manualApplicationVersion\", data.version);",
+                  "  console.log(\"Статус заявки:\", data.status, \"Версия:\", data.version);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Получить пункты запроса и сохранить requestItemId",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/applications/{{manualApplicationId}}/information-requests",
+            "description": "",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{clientToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Ожидаемый HTTP-статус\", function () { pm.expect(pm.response.code).to.be.oneOf([200]); });",
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  const data = pm.response.json();",
+                  "  const last = data[data.length - 1];",
+                  "  const item = last && last.items.find(item => item.required && item.status === \"PENDING\");",
+                  "  if (item) pm.collectionVariables.set(\"requestItemId\", item.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Ответить файлом на запрос банка",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}"
+              },
+              {
+                "key": "If-Match",
+                "value": "\"{{manualApplicationVersion}}\""
+              }
+            ],
+            "url": "{{baseUrl}}/applications/{{manualApplicationId}}/documents",
+            "description": "Выберите локальный непустой PDF/JPEG/PNG до 10 МиБ в Body → form-data → file. После загрузки выполните GET заявки для обновления If-Match. Content-Type multipart задаётся Postman автоматически.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{clientToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "type",
+                  "value": "OTHER",
+                  "type": "text"
+                },
+                {
+                  "key": "requestItemId",
+                  "value": "{{requestItemId}}",
+                  "type": "text"
+                },
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": ""
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Ожидаемый HTTP-статус\", function () { pm.expect(pm.response.code).to.be.oneOf([201]); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Обновить версию после ответа банку",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/applications/{{manualApplicationId}}",
+            "description": "Повторяйте при SCORING до итогового статуса. Запрос сохраняет актуальную версию для If-Match.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{clientToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Ожидаемый HTTP-статус\", function () { pm.expect(pm.response.code).to.be.oneOf([200]); });",
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  const data = pm.response.json();",
+                  "  pm.collectionVariables.set(\"manualApplicationId\", data.id);",
+                  "  pm.collectionVariables.set(\"manualApplicationVersion\", data.version);",
+                  "  console.log(\"Статус заявки:\", data.status, \"Версия:\", data.version);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Повторно отправить после дополнения",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}"
+              },
+              {
+                "key": "If-Match",
+                "value": "\"{{manualApplicationVersion}}\""
+              }
+            ],
+            "url": "{{baseUrl}}/applications/{{manualApplicationId}}/submit",
+            "description": "",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{clientToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Ожидаемый HTTP-статус\", function () { pm.expect(pm.response.code).to.be.oneOf([202]); });",
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  const data = pm.response.json();",
+                  "  pm.collectionVariables.set(\"manualApplicationId\", data.id);",
+                  "  pm.collectionVariables.set(\"manualApplicationVersion\", data.version);",
+                  "  console.log(\"Статус заявки:\", data.status, \"Версия:\", data.version);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Повторно дождаться MANUAL_CHECK",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/applications/{{manualApplicationId}}",
+            "description": "Повторяйте при SCORING до итогового статуса. Запрос сохраняет актуальную версию для If-Match.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{clientToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Ожидаемый HTTP-статус\", function () { pm.expect(pm.response.code).to.be.oneOf([200]); });",
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  const data = pm.response.json();",
+                  "  pm.collectionVariables.set(\"manualApplicationId\", data.id);",
+                  "  pm.collectionVariables.set(\"manualApplicationVersion\", data.version);",
+                  "  console.log(\"Статус заявки:\", data.status, \"Версия:\", data.version);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Одобрить вручную",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}"
+              },
+              {
+                "key": "If-Match",
+                "value": "\"{{manualApplicationVersion}}\""
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/bank/applications/{{manualApplicationId}}/decision",
+            "description": "",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{employeeToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"outcome\": \"APPROVED\",\n  \"reason\": \"Документы проверены, демонстрационные условия подтверждены\",\n  \"offers\": [\n    {\n      \"amountMinor\": 100000000,\n      \"termMonths\": 12,\n      \"annualRateBps\": 1690\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Ожидаемый HTTP-статус\", function () { pm.expect(pm.response.code).to.be.oneOf([200]); });",
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  const data = pm.response.json();",
+                  "  pm.collectionVariables.set(\"manualApplicationId\", data.id);",
+                  "  pm.collectionVariables.set(\"manualApplicationVersion\", data.version);",
+                  "  console.log(\"Статус заявки:\", data.status, \"Версия:\", data.version);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "08. Альтернативные действия — запускать выборочно",
+      "description": "Эти запросы взаимоисключающие: не запускайте папку целиком. Создайте новую заявку или используйте подходящий текущий статус и обновите версию через GET. Отказ клиента относится к основному applicationId, банковские варианты — к manualApplicationId.",
+      "item": [
+        {
+          "name": "Отозвать заявку",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}"
+              },
+              {
+                "key": "If-Match",
+                "value": "\"{{applicationVersion}}\""
+              }
+            ],
+            "url": "{{baseUrl}}/applications/{{applicationId}}/cancel",
+            "description": "Только IN_PROGRESS, SCORING, MANUAL_CHECK или NEEDS_INFO. Создайте новый черновик в папке 04 и выполните GET версии; не применяйте к ISSUED.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{clientToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Ожидаемый HTTP-статус\", function () { pm.expect(pm.response.code).to.be.oneOf([200]); });",
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  const data = pm.response.json();",
+                  "  pm.collectionVariables.set(\"applicationId\", data.id);",
+                  "  pm.collectionVariables.set(\"applicationVersion\", data.version);",
+                  "  console.log(\"Статус заявки:\", data.status, \"Версия:\", data.version);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Отказаться от предложения",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}"
+              },
+              {
+                "key": "If-Match",
+                "value": "\"{{applicationVersion}}\""
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/applications/{{applicationId}}/decline",
+            "description": "Вместо принятия в папке 05, пока статус APPROVED или ALTERNATIVE. После ISSUED недоступно.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{clientToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Условия не подходят\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Ожидаемый HTTP-статус\", function () { pm.expect(pm.response.code).to.be.oneOf([200]); });",
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  const data = pm.response.json();",
+                  "  pm.collectionVariables.set(\"applicationId\", data.id);",
+                  "  pm.collectionVariables.set(\"applicationVersion\", data.version);",
+                  "  console.log(\"Статус заявки:\", data.status, \"Версия:\", data.version);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Предложить другие условия вручную",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}"
+              },
+              {
+                "key": "If-Match",
+                "value": "\"{{manualApplicationVersion}}\""
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/bank/applications/{{manualApplicationId}}/decision",
+            "description": "Вместо ручного одобрения в папке 07, пока статус MANUAL_CHECK.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{employeeToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"outcome\": \"ALTERNATIVE\",\n  \"reason\": \"Предложена меньшая сумма\",\n  \"offers\": [\n    {\n      \"amountMinor\": 80000000,\n      \"termMonths\": 12,\n      \"annualRateBps\": 1690\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Ожидаемый HTTP-статус\", function () { pm.expect(pm.response.code).to.be.oneOf([200]); });",
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  const data = pm.response.json();",
+                  "  pm.collectionVariables.set(\"manualApplicationId\", data.id);",
+                  "  pm.collectionVariables.set(\"manualApplicationVersion\", data.version);",
+                  "  console.log(\"Статус заявки:\", data.status, \"Версия:\", data.version);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Отказать вручную",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}"
+              },
+              {
+                "key": "If-Match",
+                "value": "\"{{manualApplicationVersion}}\""
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/bank/applications/{{manualApplicationId}}/decision",
+            "description": "Вместо ручного одобрения или альтернативы в папке 07, пока статус MANUAL_CHECK.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{employeeToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"outcome\": \"REJECTED\",\n  \"reason\": \"Демонстрационный отказ по результатам ручной проверки\",\n  \"offers\": []\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Ожидаемый HTTP-статус\", function () { pm.expect(pm.response.code).to.be.oneOf([200]); });",
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  const data = pm.response.json();",
+                  "  pm.collectionVariables.set(\"manualApplicationId\", data.id);",
+                  "  pm.collectionVariables.set(\"manualApplicationVersion\", data.version);",
+                  "  console.log(\"Статус заявки:\", data.status, \"Версия:\", data.version);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
