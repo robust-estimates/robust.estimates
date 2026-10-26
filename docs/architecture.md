@@ -9,7 +9,7 @@ flowchart TB
  C --> CD[(company_db)]
  A --> AD[(application_db)]
  A -->|gRPC snapshot| C
- A -->|gRPC features| S[Scoring Python rules-v1]
+ A -->|gRPC features| S[Scoring Python model-v1]
  A --> M[(MinIO private bucket)]
 ```
 

@@ -193,7 +193,7 @@ def run():
     command(client, manual, "submit", expected=202)
     wait(client, manual, {"MANUAL_CHECK"})
     bank = request("GET", f'/bank/applications/{manual["id"]}', employee)
-    assert bank["scoring"]["modelVersion"] == "rules-v1"
+    assert bank["scoring"]["modelVersion"] == "model-v1"
     current = fresh(client, manual)
     request("POST", f'/bank/applications/{manual["id"]}/decision', employee, {"outcome": "NEEDS_INFO", "reason": "Дополните сведения", "items": [{"title": "Дополнительная выписка", "type": "OTHER", "required": True}]}, current["version"])
     info = request("GET", f'/applications/{manual["id"]}/information-requests', client)

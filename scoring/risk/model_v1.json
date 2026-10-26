@@ -1,0 +1,211 @@
+{
+  "version": "model-v1",
+  "trained_on": {
+    "generator": "data.generator",
+    "n": 40000,
+    "seed": 42,
+    "test_share": 0.3,
+    "target": "default_12m",
+    "target_default_rate": 0.06
+  },
+  "scale": {
+    "base_score": 600,
+    "base_odds": 50,
+    "pdo": 50
+  },
+  "base_points": 517,
+  "thresholds": {
+    "low_from": 569,
+    "medium_from": 477,
+    "low_risk_pd": 0.03,
+    "high_risk_pd": 0.1
+  },
+  "points": {
+    "business_age": {
+      "12-35": -6,
+      "36-59": 9,
+      "60+": 28,
+      "<12": -28
+    },
+    "debt_load": {
+      "0": 28,
+      "0-20": 18,
+      "20-35": -27,
+      "35-50": -46,
+      "50+": -98
+    },
+    "margin": {
+      "0-5": -43,
+      "15-25": 0,
+      "25+": 34,
+      "5-15": -17,
+      "<0": -73
+    },
+    "company_history": {
+      "30+": -34,
+      "90+": -107,
+      "clean": 19,
+      "none": -2,
+      "not_applicable": 2
+    },
+    "owner_history": {
+      "30+": -41,
+      "90+": -122,
+      "clean": 20,
+      "none": 0
+    },
+    "tax_debt": {
+      "no": 10,
+      "yes": -62
+    },
+    "bank_client": {
+      "client": 10,
+      "not_client": -6
+    },
+    "industry": {
+      "C": 5,
+      "F": -19,
+      "G": 5,
+      "H": -17,
+      "I": -18,
+      "J": 25,
+      "M": 30,
+      "S": -3
+    }
+  },
+  "metrics": {
+    "gini_test": 0.531,
+    "gini_train": 0.548,
+    "gini_rules_v1_test": 0.485,
+    "gini_ceiling_test": 0.563,
+    "coefficients": {
+      "business_age": -1.042,
+      "debt_load": -0.93,
+      "margin": -0.674,
+      "company_history": -0.752,
+      "owner_history": -0.826,
+      "tax_debt": -0.778,
+      "bank_client": -1.24,
+      "industry": -1.155
+    },
+    "information_value": {
+      "business_age": 0.071,
+      "debt_load": 0.254,
+      "margin": 0.299,
+      "company_history": 0.15,
+      "owner_history": 0.385,
+      "tax_debt": 0.19,
+      "bank_client": 0.008,
+      "industry": 0.034
+    },
+    "levels_test": {
+      "LOW": {
+        "share": 0.441,
+        "default_rate": 0.021
+      },
+      "MEDIUM": {
+        "share": 0.425,
+        "default_rate": 0.062
+      },
+      "HIGH": {
+        "share": 0.134,
+        "default_rate": 0.213
+      }
+    },
+    "calibration_test": [
+      {
+        "predicted_pd": 0.011,
+        "observed_rate": 0.009
+      },
+      {
+        "predicted_pd": 0.016,
+        "observed_rate": 0.019
+      },
+      {
+        "predicted_pd": 0.021,
+        "observed_rate": 0.028
+      },
+      {
+        "predicted_pd": 0.025,
+        "observed_rate": 0.025
+      },
+      {
+        "predicted_pd": 0.031,
+        "observed_rate": 0.032
+      },
+      {
+        "predicted_pd": 0.037,
+        "observed_rate": 0.043
+      },
+      {
+        "predicted_pd": 0.047,
+        "observed_rate": 0.057
+      },
+      {
+        "predicted_pd": 0.062,
+        "observed_rate": 0.074
+      },
+      {
+        "predicted_pd": 0.093,
+        "observed_rate": 0.109
+      },
+      {
+        "predicted_pd": 0.242,
+        "observed_rate": 0.247
+      }
+    ],
+    "bad_rate_by_bin": {
+      "business_age": {
+        "12-35": 0.063,
+        "36-59": 0.053,
+        "60+": 0.042,
+        "<12": 0.083
+      },
+      "debt_load": {
+        "0": 0.04,
+        "0-20": 0.046,
+        "20-35": 0.085,
+        "35-50": 0.11,
+        "50+": 0.213
+      },
+      "margin": {
+        "0-5": 0.133,
+        "15-25": 0.059,
+        "25+": 0.03,
+        "5-15": 0.082,
+        "<0": 0.218
+      },
+      "company_history": {
+        "30+": 0.105,
+        "90+": 0.31,
+        "clean": 0.042,
+        "none": 0.06,
+        "not_applicable": 0.057
+      },
+      "owner_history": {
+        "30+": 0.111,
+        "90+": 0.326,
+        "clean": 0.043,
+        "none": 0.058
+      },
+      "tax_debt": {
+        "no": 0.05,
+        "yes": 0.159
+      },
+      "bank_client": {
+        "client": 0.053,
+        "not_client": 0.063
+      },
+      "industry": {
+        "C": 0.055,
+        "F": 0.073,
+        "G": 0.056,
+        "H": 0.071,
+        "I": 0.072,
+        "J": 0.044,
+        "M": 0.042,
+        "S": 0.061
+      }
+    }
+  }
+}

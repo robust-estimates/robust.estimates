@@ -13,7 +13,7 @@ import grpc
 from credit.v1 import credit_pb2 as pb
 from credit.v1 import credit_pb2_grpc as rpc
 from grpc_health.v1 import health, health_pb2, health_pb2_grpc
-from app.model import RuleModel
+from app.model import RiskModel
 
 
 def authenticate(context):
@@ -43,7 +43,7 @@ def affordability_message(a):
 
 class Scoring(rpc.ScoringServiceServicer):
     def __init__(self):
-        self.model = RuleModel()
+        self.model = RiskModel()
 
     def Evaluate(self, request, context):
         authenticate(context)

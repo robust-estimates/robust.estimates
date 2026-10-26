@@ -1,7 +1,8 @@
+import os
 from dataclasses import dataclass
 
 from affordability.dscr import Affordability, assess
-from risk.rules_v1 import MODEL_VERSION, assess_risk
+from risk import model_v1, rules_v1
 from schema import Application, CreditHistory, LegalForm
 
 
@@ -29,8 +30,15 @@ def _history(report, field: str) -> CreditHistory | None:
     )
 
 
-class RuleModel:
-    version = MODEL_VERSION
+MODELS = {rules_v1.MODEL_VERSION: rules_v1.assess_risk, "model-v1": model_v1.assess_risk}
+
+
+class RiskModel:
+    def __init__(self, version: str | None = None):
+        self.version = version or os.getenv("SCORING_MODEL", "model-v1")
+        if self.version not in MODELS:
+            raise ValueError(f"Unknown scoring model {self.version}")
+        self.assess = MODELS[self.version]
 
     def evaluate(self, features, product=None):
         registry = _present(features, "registry")
@@ -52,7 +60,7 @@ class RuleModel:
             credit_bureau_checked=report is not None,
             account_turnover_monthly_minor=account.turnover_monthly_minor if account and account.found else None,
         )
-        result = assess_risk(application)
+        result = self.assess(application)
         level = result.risk_level.value
         recommendation = {"LOW": "APPROVE", "MEDIUM": "MANUAL_REVIEW", "HIGH": "REJECT"}[level]
 

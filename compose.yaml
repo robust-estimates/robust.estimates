@@ -93,6 +93,7 @@ services:
     environment:
       JWT_SECRET: ${JWT_SECRET:?required}
       GRPC_ADDR: '[::]:9093'
+      SCORING_MODEL: ${SCORING_MODEL:-model-v1}
     healthcheck:
       test: [CMD, python, -m, app.server, healthcheck]
       interval: 5s
