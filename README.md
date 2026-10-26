@@ -2,6 +2,8 @@
 
 Учебный кредитный конвейер для хакатона: три Go-сервиса, Python-скоринг, PostgreSQL и S3-совместимый MinIO. Frontend подключается к REST API gateway. Между backend-сервисами используется gRPC.
 
+Последний коммит fe262d4fcc593ea267ac3d4e3263191106d5af68
+
 ## Интеграция frontend и ML
 
 Frontend подключён к API, Python gRPC вызывает модуль риска коллег. Запуск всего проекта: `make up`, интерфейс: http://localhost:3000. [Архитектура, интеграция и проверки](docs/architecture.md).
