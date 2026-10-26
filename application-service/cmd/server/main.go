@@ -3,11 +3,13 @@ package main
 import (
 	"context"
 	"log/slog"
+	"net/http"
 	"os"
 	"time"
 
 	"github.com/minio/minio-go/v7"
 
+	"robust/application-service/internal/adapter/external"
 	grpcadapter "robust/application-service/internal/adapter/grpc"
 	"robust/application-service/internal/adapter/postgres"
 	"robust/application-service/internal/adapter/s3"
@@ -61,7 +63,7 @@ func main() {
 	scoringConn := platform.Dial(platform.Env("SCORING_GRPC_ADDR", "localhost:9093"))
 	defer scoringConn.Close()
 	secret := platform.Secret()
-	service := &usecase.Service{Repo: &postgres.Repository{DB: db}, Companies: &grpcadapter.CompanyClient{Client: pb.NewCompanyServiceClient(companyConn)}, Scorer: &grpcadapter.ScoringClient{Client: pb.NewScoringServiceClient(scoringConn)}, Storage: storage}
+	service := &usecase.Service{Repo: &postgres.Repository{DB: db}, Companies: &grpcadapter.CompanyClient{Client: pb.NewCompanyServiceClient(companyConn)}, Scorer: &grpcadapter.ScoringClient{Client: pb.NewScoringServiceClient(scoringConn)}, Storage: storage, External: &external.Client{BaseURL: platform.Env("EXTERNAL_MOCKS_URL", "http://localhost:8090"), HTTP: &http.Client{}}}
 	run, cancel := context.WithCancel(ctx)
 	defer cancel()
 	go worker(run, secret, service)

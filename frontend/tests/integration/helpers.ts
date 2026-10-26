@@ -20,15 +20,13 @@ export async function newClient(page: Page) {
   return { login, session }
 }
 
-export async function fillApplication(page: Page, options: { overdue?: boolean } = {}) {
+export async function fillApplication(page: Page, options: { inn?: string } = {}) {
   await page.goto('/#/application/business')
   await page.getByLabel('Выручка, ₽', { exact: true }).fill('3000000')
   await page.getByLabel('Расходы, ₽', { exact: true }).fill('1500000')
   await page.getByLabel('Платежи по кредитам, ₽', { exact: true }).fill('0')
-  if (options.overdue)
-    await page.getByRole('checkbox', { name: 'Есть просроченная задолженность' }).check()
   await page.getByLabel('Наименование компании', { exact: true }).fill('ООО Браузерная проверка')
-  await page.getByLabel('ИНН*', { exact: true }).fill('7700000088')
+  await page.getByLabel('ИНН*', { exact: true }).fill(options.inn ?? '7700000088')
   await page.getByLabel('ФИО *', { exact: true }).fill('Тестовый Предприниматель')
   await page.getByLabel('Должность', { exact: true }).fill('Директор')
   await page.getByLabel('Мобильный телефон *', { exact: true }).fill('+79990000000')

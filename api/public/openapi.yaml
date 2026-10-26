@@ -2594,8 +2594,6 @@ components:
           format: int64
           minimum: -100000000000000
           maximum: 100000000000000
-        hasOverdueDebt:
-          type: boolean
         marketplaceSales:
           type: boolean
       required:
@@ -2678,8 +2676,6 @@ components:
           format: int64
           minimum: -100000000000000
           maximum: 100000000000000
-        hasOverdueDebt:
-          type: boolean
         marketplaceSales:
           type: boolean
         version:

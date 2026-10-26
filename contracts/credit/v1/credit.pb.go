@@ -104,7 +104,6 @@ type CompanyInput struct {
 	AnnualExpensesMinor      int64                  `protobuf:"varint,16,opt,name=annual_expenses_minor,json=annualExpensesMinor,proto3" json:"annual_expenses_minor,omitempty"`
 	CashFlowMinor            int64                  `protobuf:"varint,17,opt,name=cash_flow_minor,json=cashFlowMinor,proto3" json:"cash_flow_minor,omitempty"`
 	OutstandingDebtMinor     int64                  `protobuf:"varint,18,opt,name=outstanding_debt_minor,json=outstandingDebtMinor,proto3" json:"outstanding_debt_minor,omitempty"`
-	HasOverdueDebt           bool                   `protobuf:"varint,19,opt,name=has_overdue_debt,json=hasOverdueDebt,proto3" json:"has_overdue_debt,omitempty"`
 	MarketplaceSales         bool                   `protobuf:"varint,20,opt,name=marketplace_sales,json=marketplaceSales,proto3" json:"marketplace_sales,omitempty"`
 	unknownFields            protoimpl.UnknownFields
 	sizeCache                protoimpl.SizeCache
@@ -242,12 +241,6 @@ func (x *CompanyInput) GetOutstandingDebtMinor() int64 {
 		return x.OutstandingDebtMinor
 	}
 	return 0
-}
-func (x *CompanyInput) GetHasOverdueDebt() bool {
-	if x != nil {
-		return x.HasOverdueDebt
-	}
-	return false
 }
 func (x *CompanyInput) GetMarketplaceSales() bool {
 	if x != nil {
@@ -2822,31 +2815,29 @@ func (x *Scoring) GetRecommendation() string {
 	return ""
 }
 
-type Features struct {
-	state                    protoimpl.MessageState `protogen:"open.v1"`
-	BusinessAgeMonths        int32                  `protobuf:"varint,1,opt,name=business_age_months,json=businessAgeMonths,proto3" json:"business_age_months,omitempty"`
-	MonthlyRevenueMinor      int64                  `protobuf:"varint,2,opt,name=monthly_revenue_minor,json=monthlyRevenueMinor,proto3" json:"monthly_revenue_minor,omitempty"`
-	MonthlyExpensesMinor     int64                  `protobuf:"varint,3,opt,name=monthly_expenses_minor,json=monthlyExpensesMinor,proto3" json:"monthly_expenses_minor,omitempty"`
-	MonthlyDebtPaymentsMinor int64                  `protobuf:"varint,4,opt,name=monthly_debt_payments_minor,json=monthlyDebtPaymentsMinor,proto3" json:"monthly_debt_payments_minor,omitempty"`
-	RequestedAmountMinor     int64                  `protobuf:"varint,5,opt,name=requested_amount_minor,json=requestedAmountMinor,proto3" json:"requested_amount_minor,omitempty"`
-	TermMonths               int32                  `protobuf:"varint,6,opt,name=term_months,json=termMonths,proto3" json:"term_months,omitempty"`
-	HasOverdueDebt           bool                   `protobuf:"varint,7,opt,name=has_overdue_debt,json=hasOverdueDebt,proto3" json:"has_overdue_debt,omitempty"`
-	unknownFields            protoimpl.UnknownFields
-	sizeCache                protoimpl.SizeCache
+type RegistryData struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Status        string                 `protobuf:"bytes,1,opt,name=status,proto3" json:"status,omitempty"`
+	LegalForm     string                 `protobuf:"bytes,2,opt,name=legal_form,json=legalForm,proto3" json:"legal_form,omitempty"`
+	OkvedSection  string                 `protobuf:"bytes,3,opt,name=okved_section,json=okvedSection,proto3" json:"okved_section,omitempty"`
+	RegisteredAt  string                 `protobuf:"bytes,4,opt,name=registered_at,json=registeredAt,proto3" json:"registered_at,omitempty"`
+	TaxDebtMinor  int64                  `protobuf:"varint,5,opt,name=tax_debt_minor,json=taxDebtMinor,proto3" json:"tax_debt_minor,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
-func (x *Features) Reset() {
-	*x = Features{}
+func (x *RegistryData) Reset() {
+	*x = RegistryData{}
 	mi := &file_credit_v1_credit_proto_msgTypes[44]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
-func (x *Features) String() string {
+func (x *RegistryData) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
-func (*Features) ProtoMessage() {
+func (*RegistryData) ProtoMessage() {
 }
-func (x *Features) ProtoReflect() protoreflect.Message {
+func (x *RegistryData) ProtoReflect() protoreflect.Message {
 	mi := &file_credit_v1_credit_proto_msgTypes[44]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -2857,8 +2848,231 @@ func (x *Features) ProtoReflect() protoreflect.Message {
 	}
 	return mi.MessageOf(x)
 }
-func (*Features) Descriptor() ([]byte, []int) {
+func (*RegistryData) Descriptor() ([]byte, []int) {
 	return file_credit_v1_credit_proto_rawDescGZIP(), []int{44}
+}
+func (x *RegistryData) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+func (x *RegistryData) GetLegalForm() string {
+	if x != nil {
+		return x.LegalForm
+	}
+	return ""
+}
+func (x *RegistryData) GetOkvedSection() string {
+	if x != nil {
+		return x.OkvedSection
+	}
+	return ""
+}
+func (x *RegistryData) GetRegisteredAt() string {
+	if x != nil {
+		return x.RegisteredAt
+	}
+	return ""
+}
+func (x *RegistryData) GetTaxDebtMinor() int64 {
+	if x != nil {
+		return x.TaxDebtMinor
+	}
+	return 0
+}
+
+type CreditHistory struct {
+	state              protoimpl.MessageState `protogen:"open.v1"`
+	Found              bool                   `protobuf:"varint,1,opt,name=found,proto3" json:"found,omitempty"`
+	OverdueCount_12M   int32                  `protobuf:"varint,2,opt,name=overdue_count_12m,json=overdueCount12m,proto3" json:"overdue_count_12m,omitempty"`
+	MaxOverdueDays_24M int32                  `protobuf:"varint,3,opt,name=max_overdue_days_24m,json=maxOverdueDays24m,proto3" json:"max_overdue_days_24m,omitempty"`
+	ActiveLoans        int32                  `protobuf:"varint,4,opt,name=active_loans,json=activeLoans,proto3" json:"active_loans,omitempty"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
+}
+
+func (x *CreditHistory) Reset() {
+	*x = CreditHistory{}
+	mi := &file_credit_v1_credit_proto_msgTypes[45]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+func (x *CreditHistory) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+func (*CreditHistory) ProtoMessage() {
+}
+func (x *CreditHistory) ProtoReflect() protoreflect.Message {
+	mi := &file_credit_v1_credit_proto_msgTypes[45]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+func (*CreditHistory) Descriptor() ([]byte, []int) {
+	return file_credit_v1_credit_proto_rawDescGZIP(), []int{45}
+}
+func (x *CreditHistory) GetFound() bool {
+	if x != nil {
+		return x.Found
+	}
+	return false
+}
+func (x *CreditHistory) GetOverdueCount_12M() int32 {
+	if x != nil {
+		return x.OverdueCount_12M
+	}
+	return 0
+}
+func (x *CreditHistory) GetMaxOverdueDays_24M() int32 {
+	if x != nil {
+		return x.MaxOverdueDays_24M
+	}
+	return 0
+}
+func (x *CreditHistory) GetActiveLoans() int32 {
+	if x != nil {
+		return x.ActiveLoans
+	}
+	return 0
+}
+
+type CreditReport struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Company       *CreditHistory         `protobuf:"bytes,1,opt,name=company,proto3" json:"company,omitempty"`
+	Owner         *CreditHistory         `protobuf:"bytes,2,opt,name=owner,proto3" json:"owner,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreditReport) Reset() {
+	*x = CreditReport{}
+	mi := &file_credit_v1_credit_proto_msgTypes[46]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+func (x *CreditReport) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+func (*CreditReport) ProtoMessage() {
+}
+func (x *CreditReport) ProtoReflect() protoreflect.Message {
+	mi := &file_credit_v1_credit_proto_msgTypes[46]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+func (*CreditReport) Descriptor() ([]byte, []int) {
+	return file_credit_v1_credit_proto_rawDescGZIP(), []int{46}
+}
+func (x *CreditReport) GetCompany() *CreditHistory {
+	if x != nil {
+		return x.Company
+	}
+	return nil
+}
+func (x *CreditReport) GetOwner() *CreditHistory {
+	if x != nil {
+		return x.Owner
+	}
+	return nil
+}
+
+type AccountData struct {
+	state                protoimpl.MessageState `protogen:"open.v1"`
+	Found                bool                   `protobuf:"varint,1,opt,name=found,proto3" json:"found,omitempty"`
+	TurnoverMonthlyMinor int64                  `protobuf:"varint,2,opt,name=turnover_monthly_minor,json=turnoverMonthlyMinor,proto3" json:"turnover_monthly_minor,omitempty"`
+	unknownFields        protoimpl.UnknownFields
+	sizeCache            protoimpl.SizeCache
+}
+
+func (x *AccountData) Reset() {
+	*x = AccountData{}
+	mi := &file_credit_v1_credit_proto_msgTypes[47]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+func (x *AccountData) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+func (*AccountData) ProtoMessage() {
+}
+func (x *AccountData) ProtoReflect() protoreflect.Message {
+	mi := &file_credit_v1_credit_proto_msgTypes[47]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+func (*AccountData) Descriptor() ([]byte, []int) {
+	return file_credit_v1_credit_proto_rawDescGZIP(), []int{47}
+}
+func (x *AccountData) GetFound() bool {
+	if x != nil {
+		return x.Found
+	}
+	return false
+}
+func (x *AccountData) GetTurnoverMonthlyMinor() int64 {
+	if x != nil {
+		return x.TurnoverMonthlyMinor
+	}
+	return 0
+}
+
+type Features struct {
+	state                    protoimpl.MessageState `protogen:"open.v1"`
+	BusinessAgeMonths        int32                  `protobuf:"varint,1,opt,name=business_age_months,json=businessAgeMonths,proto3" json:"business_age_months,omitempty"`
+	MonthlyRevenueMinor      int64                  `protobuf:"varint,2,opt,name=monthly_revenue_minor,json=monthlyRevenueMinor,proto3" json:"monthly_revenue_minor,omitempty"`
+	MonthlyExpensesMinor     int64                  `protobuf:"varint,3,opt,name=monthly_expenses_minor,json=monthlyExpensesMinor,proto3" json:"monthly_expenses_minor,omitempty"`
+	MonthlyDebtPaymentsMinor int64                  `protobuf:"varint,4,opt,name=monthly_debt_payments_minor,json=monthlyDebtPaymentsMinor,proto3" json:"monthly_debt_payments_minor,omitempty"`
+	RequestedAmountMinor     int64                  `protobuf:"varint,5,opt,name=requested_amount_minor,json=requestedAmountMinor,proto3" json:"requested_amount_minor,omitempty"`
+	TermMonths               int32                  `protobuf:"varint,6,opt,name=term_months,json=termMonths,proto3" json:"term_months,omitempty"`
+	Registry                 *RegistryData          `protobuf:"bytes,8,opt,name=registry,proto3" json:"registry,omitempty"`
+	CreditReport             *CreditReport          `protobuf:"bytes,9,opt,name=credit_report,json=creditReport,proto3" json:"credit_report,omitempty"`
+	Account                  *AccountData           `protobuf:"bytes,10,opt,name=account,proto3" json:"account,omitempty"`
+	unknownFields            protoimpl.UnknownFields
+	sizeCache                protoimpl.SizeCache
+}
+
+func (x *Features) Reset() {
+	*x = Features{}
+	mi := &file_credit_v1_credit_proto_msgTypes[48]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+func (x *Features) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+func (*Features) ProtoMessage() {
+}
+func (x *Features) ProtoReflect() protoreflect.Message {
+	mi := &file_credit_v1_credit_proto_msgTypes[48]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+func (*Features) Descriptor() ([]byte, []int) {
+	return file_credit_v1_credit_proto_rawDescGZIP(), []int{48}
 }
 func (x *Features) GetBusinessAgeMonths() int32 {
 	if x != nil {
@@ -2896,11 +3110,23 @@ func (x *Features) GetTermMonths() int32 {
 	}
 	return 0
 }
-func (x *Features) GetHasOverdueDebt() bool {
+func (x *Features) GetRegistry() *RegistryData {
 	if x != nil {
-		return x.HasOverdueDebt
+		return x.Registry
 	}
-	return false
+	return nil
+}
+func (x *Features) GetCreditReport() *CreditReport {
+	if x != nil {
+		return x.CreditReport
+	}
+	return nil
+}
+func (x *Features) GetAccount() *AccountData {
+	if x != nil {
+		return x.Account
+	}
+	return nil
 }
 
 type ScoringInput struct {
@@ -2915,7 +3141,7 @@ type ScoringInput struct {
 
 func (x *ScoringInput) Reset() {
 	*x = ScoringInput{}
-	mi := &file_credit_v1_credit_proto_msgTypes[45]
+	mi := &file_credit_v1_credit_proto_msgTypes[49]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2925,7 +3151,7 @@ func (x *ScoringInput) String() string {
 func (*ScoringInput) ProtoMessage() {
 }
 func (x *ScoringInput) ProtoReflect() protoreflect.Message {
-	mi := &file_credit_v1_credit_proto_msgTypes[45]
+	mi := &file_credit_v1_credit_proto_msgTypes[49]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2936,7 +3162,7 @@ func (x *ScoringInput) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 func (*ScoringInput) Descriptor() ([]byte, []int) {
-	return file_credit_v1_credit_proto_rawDescGZIP(), []int{45}
+	return file_credit_v1_credit_proto_rawDescGZIP(), []int{49}
 }
 func (x *ScoringInput) GetScoringRequestId() string {
 	if x != nil {
@@ -2975,7 +3201,7 @@ type ScoringOutput struct {
 
 func (x *ScoringOutput) Reset() {
 	*x = ScoringOutput{}
-	mi := &file_credit_v1_credit_proto_msgTypes[46]
+	mi := &file_credit_v1_credit_proto_msgTypes[50]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2985,7 +3211,7 @@ func (x *ScoringOutput) String() string {
 func (*ScoringOutput) ProtoMessage() {
 }
 func (x *ScoringOutput) ProtoReflect() protoreflect.Message {
-	mi := &file_credit_v1_credit_proto_msgTypes[46]
+	mi := &file_credit_v1_credit_proto_msgTypes[50]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2996,7 +3222,7 @@ func (x *ScoringOutput) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 func (*ScoringOutput) Descriptor() ([]byte, []int) {
-	return file_credit_v1_credit_proto_rawDescGZIP(), []int{46}
+	return file_credit_v1_credit_proto_rawDescGZIP(), []int{50}
 }
 func (x *ScoringOutput) GetScoringRequestId() string {
 	if x != nil {
@@ -3037,7 +3263,7 @@ type FeedItem struct {
 
 func (x *FeedItem) Reset() {
 	*x = FeedItem{}
-	mi := &file_credit_v1_credit_proto_msgTypes[47]
+	mi := &file_credit_v1_credit_proto_msgTypes[51]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3047,7 +3273,7 @@ func (x *FeedItem) String() string {
 func (*FeedItem) ProtoMessage() {
 }
 func (x *FeedItem) ProtoReflect() protoreflect.Message {
-	mi := &file_credit_v1_credit_proto_msgTypes[47]
+	mi := &file_credit_v1_credit_proto_msgTypes[51]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3058,7 +3284,7 @@ func (x *FeedItem) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 func (*FeedItem) Descriptor() ([]byte, []int) {
-	return file_credit_v1_credit_proto_rawDescGZIP(), []int{47}
+	return file_credit_v1_credit_proto_rawDescGZIP(), []int{51}
 }
 func (x *FeedItem) GetId() string {
 	if x != nil {
@@ -3106,7 +3332,7 @@ type FeedList struct {
 
 func (x *FeedList) Reset() {
 	*x = FeedList{}
-	mi := &file_credit_v1_credit_proto_msgTypes[48]
+	mi := &file_credit_v1_credit_proto_msgTypes[52]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3116,7 +3342,7 @@ func (x *FeedList) String() string {
 func (*FeedList) ProtoMessage() {
 }
 func (x *FeedList) ProtoReflect() protoreflect.Message {
-	mi := &file_credit_v1_credit_proto_msgTypes[48]
+	mi := &file_credit_v1_credit_proto_msgTypes[52]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3127,7 +3353,7 @@ func (x *FeedList) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 func (*FeedList) Descriptor() ([]byte, []int) {
-	return file_credit_v1_credit_proto_rawDescGZIP(), []int{48}
+	return file_credit_v1_credit_proto_rawDescGZIP(), []int{52}
 }
 func (x *FeedList) GetItems() []*FeedItem {
 	if x != nil {
@@ -3151,7 +3377,7 @@ type Overview struct {
 
 func (x *Overview) Reset() {
 	*x = Overview{}
-	mi := &file_credit_v1_credit_proto_msgTypes[49]
+	mi := &file_credit_v1_credit_proto_msgTypes[53]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3161,7 +3387,7 @@ func (x *Overview) String() string {
 func (*Overview) ProtoMessage() {
 }
 func (x *Overview) ProtoReflect() protoreflect.Message {
-	mi := &file_credit_v1_credit_proto_msgTypes[49]
+	mi := &file_credit_v1_credit_proto_msgTypes[53]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3172,7 +3398,7 @@ func (x *Overview) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 func (*Overview) Descriptor() ([]byte, []int) {
-	return file_credit_v1_credit_proto_rawDescGZIP(), []int{49}
+	return file_credit_v1_credit_proto_rawDescGZIP(), []int{53}
 }
 func (x *Overview) GetApplication() *Application {
 	if x != nil {
@@ -3219,7 +3445,7 @@ func (x *Overview) GetInformationRequests() []*InformationRequest {
 
 var File_credit_v1_credit_proto protoreflect.FileDescriptor
 
-const file_credit_v1_credit_proto_rawDesc = "" + "\n" + "\x16credit/v1/credit.proto\x12\tcredit.v1\"\a\n" + "\x05Empty\"\x14\n" + "\x02ID\x12\x0e\n" + "\x02id\x18\x01 \x01(\tR\x02id\"\xa5\x06\n" + "\fCompanyInput\x12\x10\n" + "\x03inn\x18\x01 \x01(\tR\x03inn\x12\x12\n" + "\x04name\x18\x02 \x01(\tR\x04name\x12.\n" + "\x13business_age_months\x18\x03 \x01(\x05R\x11businessAgeMonths\x122\n" + "\x15monthly_revenue_minor\x18\x04 \x01(\x03R\x13monthlyRevenueMinor\x124\n" + "\x16monthly_expenses_minor\x18\x05 \x01(\x03R\x14monthlyExpensesMinor\x12=\n" + "\x1bmonthly_debt_payments_minor\x18\x06 \x01(\x03R\x18monthlyDebtPaymentsMinor\x12\x10\n" + "\x03kpp\x18\a \x01(\tR\x03kpp\x12\x12\n" + "\x04ogrn\x18\b \x01(\tR\x04ogrn\x12\x1a\n" + "\bindustry\x18\t \x01(\tR\bindustry\x12#\n" + "\rregistered_at\x18\n" + " \x01(\tR\fregisteredAt\x12/\n" + "\x13representative_name\x18\v \x01(\tR\x12representativeName\x127\n" + "\x17representative_position\x18\f \x01(\tR\x16representativePosition\x12\x14\n" + "\x05phone\x18\r \x01(\tR\x05phone\x12\x14\n" + "\x05email\x18\x0e \x01(\tR\x05email\x120\n" + "\x14annual_revenue_minor\x18\x0f \x01(\x03R\x12annualRevenueMinor\x122\n" + "\x15annual_expenses_minor\x18\x10 \x01(\x03R\x13annualExpensesMinor\x12&\n" + "\x0fcash_flow_minor\x18\x11 \x01(\x03R\rcashFlowMinor\x124\n" + "\x16outstanding_debt_minor\x18\x12 \x01(\x03R\x14outstandingDebtMinor\x12(\n" + "\x10has_overdue_debt\x18\x13 \x01(\bR\x0ehasOverdueDebt\x12+\n" + "\x11marketplace_sales\x18\x14 \x01(\bR\x10marketplaceSales\"\xdf\x01\n" + "\aCompany\x12\x0e\n" + "\x02id\x18\x01 \x01(\tR\x02id\x12+\n" + "\x04data\x18\x02 \x01(\v2\x17.credit.v1.CompanyInputR\x04data\x12/\n" + "\x13verification_status\x18\x03 \x01(\tR\x12verificationStatus\x121\n" + "\x14verification_message\x18\x04 \x01(\tR\x13verificationMessage\x12\x19\n" + "\bowner_id\x18\x05 \x01(\tR\aownerId\x12\x18\n" + "\aversion\x18\x06 \x01(\x03R\aversion\"7\n" + "\vCompanyList\x12(\n" + "\x05items\x18\x01 \x03(\v2\x12.credit.v1.CompanyR\x05items\"L\n" + "\rCompanyUpdate\x12\x0e\n" + "\x02id\x18\x01 \x01(\tR\x02id\x12+\n" + "\x04data\x18\x02 \x01(\v2\x17.credit.v1.CompanyInputR\x04data\"\xc6\x03\n" + "\aProduct\x12\x0e\n" + "\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" + "\x04name\x18\x02 \x01(\tR\x04name\x12\x1a\n" + "\bpurposes\x18\x03 \x03(\tR\bpurposes\x12(\n" + "\x10min_amount_minor\x18\x04 \x01(\x03R\x0eminAmountMinor\x12(\n" + "\x10max_amount_minor\x18\x05 \x01(\x03R\x0emaxAmountMinor\x12&\n" + "\x0fmin_term_months\x18\x06 \x01(\x05R\rminTermMonths\x12&\n" + "\x0fmax_term_months\x18\a \x01(\x05R\rmaxTermMonths\x12&\n" + "\x0fannual_rate_bps\x18\b \x01(\x05R\rannualRateBps\x126\n" + "\x17required_document_types\x18\t \x03(\tR\x15requiredDocumentTypes\x12 \n" + "\vdescription\x18\n" + " \x01(\tR\vdescription\x12\x1e\n" + "\n" + "collateral\x18\v \x01(\tR\n" + "collateral\x12!\n" + "\fpayment_type\x18\f \x01(\tR\vpaymentType\x12\x12\n" + "\x04tags\x18\r \x03(\tR\x04tags\"7\n" + "\vProductList\x12(\n" + "\x05items\x18\x01 \x03(\v2\x12.credit.v1.ProductR\x05items\"\xa5\x01\n" + "\x04Need\x12\x1d\n" + "\n" + "company_id\x18\x01 \x01(\tR\tcompanyId\x12!\n" + "\famount_minor\x18\x02 \x01(\x03R\vamountMinor\x12\x1f\n" + "\vterm_months\x18\x03 \x01(\x05R\n" + "termMonths\x12\x18\n" + "\apurpose\x18\x04 \x01(\tR\apurpose\x12 \n" + "\vdescription\x18\x05 \x01(\tR\vdescription\"\xc8\x01\n" + "\x13RecommendationInput\x12\x1d\n" + "\n" + "company_id\x18\x01 \x01(\tR\tcompanyId\x12&\n" + "\famount_minor\x18\x02 \x01(\x03H\x00R\vamountMinor\x88\x01\x01\x12\x1f\n" + "\vterm_months\x18\x03 \x01(\x05R\n" + "termMonths\x12\x18\n" + "\apurpose\x18\x04 \x01(\tR\apurpose\x12\x1e\n" + "\n" + "collateral\x18\x05 \x01(\tR\n" + "collateralB\x0f\n" + "\r_amount_minor\"\xd5\x01\n" + "\x0eRecommendation\x12,\n" + "\aproduct\x18\x01 \x01(\v2\x12.credit.v1.ProductR\aproduct\x12\x16\n" + "\x06reason\x18\x02 \x01(\tR\x06reason\x12E\n" + "\x1festimated_monthly_payment_minor\x18\x03 \x01(\x03R\x1cestimatedMonthlyPaymentMinor\x12\"\n" + "\favailability\x18\x04 \x01(\tR\favailability\x12\x12\n" + "\x04rank\x18\x05 \x01(\x05R\x04rank\"E\n" + "\x12RecommendationList\x12/\n" + "\x05items\x18\x01 \x03(\v2\x19.credit.v1.RecommendationR\x05items\"u\n" + "\x10CalculationInput\x12\x1d\n" + "\n" + "product_id\x18\x01 \x01(\tR\tproductId\x12!\n" + "\famount_minor\x18\x02 \x01(\x03R\vamountMinor\x12\x1f\n" + "\vterm_months\x18\x03 \x01(\x05R\n" + "termMonths\"\xb9\x01\n" + "\aPayment\x12\x14\n" + "\x05month\x18\x01 \x01(\x05R\x05month\x12'\n" + "\x0fprincipal_minor\x18\x02 \x01(\x03R\x0eprincipalMinor\x12%\n" + "\x0einterest_minor\x18\x03 \x01(\x03R\rinterestMinor\x12#\n" + "\rpayment_minor\x18\x04 \x01(\x03R\fpaymentMinor\x12#\n" + "\rbalance_minor\x18\x05 \x01(\x03R\fbalanceMinor\"\xee\x01\n" + "\vCalculation\x122\n" + "\x15monthly_payment_minor\x18\x01 \x01(\x03R\x13monthlyPaymentMinor\x12.\n" + "\x13total_payment_minor\x18\x02 \x01(\x03R\x11totalPaymentMinor\x12+\n" + "\x11overpayment_minor\x18\x03 \x01(\x03R\x10overpaymentMinor\x12.\n" + "\bschedule\x18\x04 \x03(\v2\x12.credit.v1.PaymentR\bschedule\x12\x1e\n" + "\n" + "disclaimer\x18\x05 \x01(\tR\n" + "disclaimer\"u\n" + "\aConsent\x128\n" + "\x18personal_data_processing\x18\x01 \x01(\bR\x16personalDataProcessing\x120\n" + "\x14credit_history_check\x18\x02 \x01(\bR\x12creditHistoryCheck\"\x80\x01\n" + "\n" + "DraftInput\x12#\n" + "\x04need\x18\x01 \x01(\v2\x0f.credit.v1.NeedR\x04need\x12\x1d\n" + "\n" + "product_id\x18\x02 \x01(\tR\tproductId\x12.\n" + "\bconsents\x18\x03 \x01(\v2\x12.credit.v1.ConsentR\bconsents\"\x94\x01\n" + "\n" + "DraftPatch\x12#\n" + "\x04need\x18\x01 \x01(\v2\x0f.credit.v1.NeedR\x04need\x12\"\n" + "\n" + "product_id\x18\x02 \x01(\tH\x00R\tproductId\x88\x01\x01\x12.\n" + "\bconsents\x18\x03 \x01(\v2\x12.credit.v1.ConsentR\bconsentsB\r\n" + "\v_product_id\"\x9b\x04\n" + "\vApplication\x12\x0e\n" + "\x02id\x18\x01 \x01(\tR\x02id\x12\x1d\n" + "\n" + "company_id\x18\x02 \x01(\tR\tcompanyId\x12\x1d\n" + "\n" + "product_id\x18\x03 \x01(\tR\tproductId\x12#\n" + "\x04need\x18\x04 \x01(\v2\x0f.credit.v1.NeedR\x04need\x12.\n" + "\bconsents\x18\x05 \x01(\v2\x12.credit.v1.ConsentR\bconsents\x12\x16\n" + "\x06status\x18\x06 \x01(\tR\x06status\x12\x18\n" + "\aversion\x18\a \x01(\x03R\aversion\x12\x1d\n" + "\n" + "created_at\x18\b \x01(\tR\tcreatedAt\x12\x1d\n" + "\n" + "updated_at\x18\t \x01(\tR\tupdatedAt\x12\x1f\n" + "\vnext_action\x18\n" + " \x01(\tR\n" + "nextAction\x12%\n" + "\x0emissing_fields\x18\v \x03(\tR\rmissingFields\x12\x16\n" + "\x06number\x18\f \x01(\tR\x06number\x12!\n" + "\fcompany_name\x18\r \x01(\tR\vcompanyName\x12\x10\n" + "\x03inn\x18\x0e \x01(\tR\x03inn\x12!\n" + "\fproduct_name\x18\x0f \x01(\tR\vproductName\x12&\n" + "\x0erecommendation\x18\x10 \x01(\tR\x0erecommendation\x12\x19\n" + "\bowner_id\x18\x11 \x01(\tR\aownerId\"\xe6\x01\n" + "\tPageInput\x12\x16\n" + "\x06offset\x18\x01 \x01(\x05R\x06offset\x12\x14\n" + "\x05limit\x18\x02 \x01(\x05R\x05limit\x12\x16\n" + "\x06status\x18\x03 \x01(\tR\x06status\x12\x16\n" + "\x06search\x18\x04 \x01(\tR\x06search\x12\x1d\n" + "\n" + "company_id\x18\x05 \x01(\tR\tcompanyId\x12&\n" + "\x0erecommendation\x18\x06 \x01(\tR\x0erecommendation\x12\x1b\n" + "\tfrom_date\x18\a \x01(\tR\bfromDate\x12\x17\n" + "\ato_date\x18\b \x01(\tR\x06toDate\"\xfe\x01\n" + "\x0fApplicationPage\x12,\n" + "\x05items\x18\x01 \x03(\v2\x16.credit.v1.ApplicationR\x05items\x12\x16\n" + "\x06offset\x18\x02 \x01(\x05R\x06offset\x12\x14\n" + "\x05limit\x18\x03 \x01(\x05R\x05limit\x12\x14\n" + "\x05total\x18\x04 \x01(\x03R\x05total\x12>\n" + "\x06counts\x18\x05 \x03(\v2&.credit.v1.ApplicationPage.CountsEntryR\x06counts\x1a9\n" + "\vCountsEntry\x12\x10\n" + "\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" + "\x05value\x18\x02 \x01(\x03R\x05value:\x028\x01\"I\n" + "\n" + "PatchInput\x12\x0e\n" + "\x02id\x18\x01 \x01(\tR\x02id\x12+\n" + "\x05patch\x18\x02 \x01(\v2\x15.credit.v1.DraftPatchR\x05patch\"\x90\x02\n" + "\bDocument\x12\x0e\n" + "\x02id\x18\x01 \x01(\tR\x02id\x12%\n" + "\x0eapplication_id\x18\x02 \x01(\tR\rapplicationId\x12\x12\n" + "\x04type\x18\x03 \x01(\tR\x04type\x12\x1b\n" + "\tfile_name\x18\x04 \x01(\tR\bfileName\x12!\n" + "\fcontent_type\x18\x05 \x01(\tR\vcontentType\x12\x1d\n" + "\n" + "size_bytes\x18\x06 \x01(\x03R\tsizeBytes\x12\x16\n" + "\x06status\x18\a \x01(\tR\x06status\x12\x1a\n" + "\bchecksum\x18\b \x01(\tR\bchecksum\x12&\n" + "\x0frequest_item_id\x18\t \x01(\tR\rrequestItemId\"9\n" + "\fDocumentList\x12)\n" + "\x05items\x18\x01 \x03(\v2\x13.credit.v1.DocumentR\x05items\"\xb3\x01\n" + "\x0eUploadMetadata\x12%\n" + "\x0eapplication_id\x18\x01 \x01(\tR\rapplicationId\x12\x12\n" + "\x04type\x18\x02 \x01(\tR\x04type\x12\x1b\n" + "\tfile_name\x18\x03 \x01(\tR\bfileName\x12!\n" + "\fcontent_type\x18\x04 \x01(\tR\vcontentType\x12&\n" + "\x0frequest_item_id\x18\x05 \x01(\tR\rrequestItemId\"e\n" + "\vUploadChunk\x127\n" + "\bmetadata\x18\x01 \x01(\v2\x19.credit.v1.UploadMetadataH\x00R\bmetadata\x12\x14\n" + "\x04data\x18\x02 \x01(\fH\x00R\x04dataB\a\n" + "\x05value\"T\n" + "\n" + "DocumentID\x12%\n" + "\x0eapplication_id\x18\x01 \x01(\tR\rapplicationId\x12\x1f\n" + "\vdocument_id\x18\x02 \x01(\tR\n" + "documentId\"c\n" + "\rDownloadChunk\x12\x1b\n" + "\tfile_name\x18\x01 \x01(\tR\bfileName\x12!\n" + "\fcontent_type\x18\x02 \x01(\tR\vcontentType\x12\x12\n" + "\x04data\x18\x03 \x01(\fR\x04data\"<\n" + "\n" + "FieldError\x12\x14\n" + "\x05field\x18\x01 \x01(\tR\x05field\x12\x18\n" + "\amessage\x18\x02 \x01(\tR\amessage\"x\n" + "\n" + "Validation\x12\x14\n" + "\x05valid\x18\x01 \x01(\bR\x05valid\x12%\n" + "\x0emissing_fields\x18\x02 \x03(\tR\rmissingFields\x12-\n" + "\x06errors\x18\x03 \x03(\v2\x15.credit.v1.FieldErrorR\x06errors\"\x95\x02\n" + "\x05Offer\x12\x0e\n" + "\x02id\x18\x01 \x01(\tR\x02id\x12\x1d\n" + "\n" + "product_id\x18\x02 \x01(\tR\tproductId\x12!\n" + "\famount_minor\x18\x03 \x01(\x03R\vamountMinor\x12\x1f\n" + "\vterm_months\x18\x04 \x01(\x05R\n" + "termMonths\x12&\n" + "\x0fannual_rate_bps\x18\x05 \x01(\x05R\rannualRateBps\x122\n" + "\x15monthly_payment_minor\x18\x06 \x01(\x03R\x13monthlyPaymentMinor\x12\x1d\n" + "\n" + "expires_at\x18\a \x01(\tR\texpiresAt\x12\x1e\n" + "\n" + "collateral\x18\b \x01(\tR\n" + "collateral\"\x95\x01\n" + "\bDecision\x12\x0e\n" + "\x02id\x18\x01 \x01(\tR\x02id\x12\x18\n" + "\aoutcome\x18\x02 \x01(\tR\aoutcome\x12\x16\n" + "\x06reason\x18\x03 \x01(\tR\x06reason\x12(\n" + "\x06offers\x18\x04 \x03(\v2\x10.credit.v1.OfferR\x06offers\x12\x1d\n" + "\n" + "decided_at\x18\x05 \x01(\tR\tdecidedAt\"\x7f\n" + "\x0fInformationItem\x12\x0e\n" + "\x02id\x18\x01 \x01(\tR\x02id\x12\x14\n" + "\x05title\x18\x02 \x01(\tR\x05title\x12\x12\n" + "\x04type\x18\x03 \x01(\tR\x04type\x12\x1a\n" + "\brequired\x18\x04 \x01(\bR\brequired\x12\x16\n" + "\x06status\x18\x05 \x01(\tR\x06status\"\x8f\x01\n" + "\x12InformationRequest\x12\x0e\n" + "\x02id\x18\x01 \x01(\tR\x02id\x12\x18\n" + "\amessage\x18\x02 \x01(\tR\amessage\x120\n" + "\x05items\x18\x03 \x03(\v2\x1a.credit.v1.InformationItemR\x05items\x12\x1d\n" + "\n" + "created_at\x18\x04 \x01(\tR\tcreatedAt\"F\n" + "\x0fInformationList\x123\n" + "\x05items\x18\x01 \x03(\v2\x1d.credit.v1.InformationRequestR\x05items\"\xc9\x01\n" + "\x0eManualDecision\x12\x18\n" + "\aoutcome\x18\x01 \x01(\tR\aoutcome\x12\x16\n" + "\x06reason\x18\x02 \x01(\tR\x06reason\x12(\n" + "\x06offers\x18\x03 \x03(\v2\x10.credit.v1.OfferR\x06offers\x12)\n" + "\x10requested_fields\x18\x04 \x03(\tR\x0frequestedFields\x120\n" + "\x05items\x18\x05 \x03(\v2\x1a.credit.v1.InformationItemR\x05items\"T\n" + "\vManualInput\x12\x0e\n" + "\x02id\x18\x01 \x01(\tR\x02id\x125\n" + "\bdecision\x18\x02 \x01(\v2\x19.credit.v1.ManualDecisionR\bdecision\"6\n" + "\fDeclineInput\x12\x0e\n" + "\x02id\x18\x01 \x01(\tR\x02id\x12\x16\n" + "\x06reason\x18\x02 \x01(\tR\x06reason\"8\n" + "\vAcceptInput\x12\x0e\n" + "\x02id\x18\x01 \x01(\tR\x02id\x12\x19\n" + "\boffer_id\x18\x02 \x01(\tR\aofferId\"\xb6\x01\n" + "\x04Loan\x12\x0e\n" + "\x02id\x18\x01 \x01(\tR\x02id\x12%\n" + "\x0eapplication_id\x18\x02 \x01(\tR\rapplicationId\x12\x19\n" + "\boffer_id\x18\x03 \x01(\tR\aofferId\x12!\n" + "\famount_minor\x18\x04 \x01(\x03R\vamountMinor\x12\x1b\n" + "\tissued_at\x18\x05 \x01(\tR\bissuedAt\x12\x1c\n" + "\tsimulated\x18\x06 \x01(\bR\tsimulated\"\x9e\x01\n" + "\x05Event\x12\x0e\n" + "\x02id\x18\x01 \x01(\tR\x02id\x12\x0e\n" + "\x02at\x18\x02 \x01(\tR\x02at\x12\x1f\n" + "\vfrom_status\x18\x03 \x01(\tR\n" + "fromStatus\x12\x1b\n" + "\tto_status\x18\x04 \x01(\tR\btoStatus\x12\x18\n" + "\amessage\x18\x05 \x01(\tR\amessage\x12\x1d\n" + "\n" + "actor_role\x18\x06 \x01(\tR\tactorRole\"3\n" + "\tEventList\x12&\n" + "\x05items\x18\x01 \x03(\v2\x10.credit.v1.EventR\x05items\"p\n" + "\x05Check\x12\x16\n" + "\x06source\x18\x01 \x01(\tR\x06source\x12\x16\n" + "\x06status\x18\x02 \x01(\tR\x06status\x12\x18\n" + "\asummary\x18\x03 \x01(\tR\asummary\x12\x1d\n" + "\n" + "checked_at\x18\x04 \x01(\tR\tcheckedAt\"\xcf\x01\n" + "\aScoring\x12\x14\n" + "\x05score\x18\x01 \x01(\x05R\x05score\x12\x1d\n" + "\n" + "risk_level\x18\x02 \x01(\tR\triskLevel\x12\x18\n" + "\afactors\x18\x03 \x03(\tR\afactors\x12#\n" + "\rmodel_version\x18\x04 \x01(\tR\fmodelVersion\x12(\n" + "\x06checks\x18\x05 \x03(\v2\x10.credit.v1.CheckR\x06checks\x12&\n" + "\x0erecommendation\x18\x06 \x01(\tR\x0erecommendation\"\xe4\x02\n" + "\bFeatures\x12.\n" + "\x13business_age_months\x18\x01 \x01(\x05R\x11businessAgeMonths\x122\n" + "\x15monthly_revenue_minor\x18\x02 \x01(\x03R\x13monthlyRevenueMinor\x124\n" + "\x16monthly_expenses_minor\x18\x03 \x01(\x03R\x14monthlyExpensesMinor\x12=\n" + "\x1bmonthly_debt_payments_minor\x18\x04 \x01(\x03R\x18monthlyDebtPaymentsMinor\x124\n" + "\x16requested_amount_minor\x18\x05 \x01(\x03R\x14requestedAmountMinor\x12\x1f\n" + "\vterm_months\x18\x06 \x01(\x05R\n" + "termMonths\x12(\n" + "\x10has_overdue_debt\x18\a \x01(\bR\x0ehasOverdueDebt\"\xc5\x01\n" + "\fScoringInput\x12,\n" + "\x12scoring_request_id\x18\x01 \x01(\tR\x10scoringRequestId\x12%\n" + "\x0eapplication_id\x18\x02 \x01(\tR\rapplicationId\x12/\n" + "\x13application_version\x18\x03 \x01(\x03R\x12applicationVersion\x12/\n" + "\bfeatures\x18\x04 \x01(\v2\x13.credit.v1.FeaturesR\bfeatures\"\xc3\x01\n" + "\rScoringOutput\x12,\n" + "\x12scoring_request_id\x18\x01 \x01(\tR\x10scoringRequestId\x12%\n" + "\x0eapplication_id\x18\x02 \x01(\tR\rapplicationId\x12/\n" + "\x13application_version\x18\x03 \x01(\x03R\x12applicationVersion\x12,\n" + "\ascoring\x18\x04 \x01(\v2\x12.credit.v1.ScoringR\ascoring\"\xa2\x01\n" + "\bFeedItem\x12\x0e\n" + "\x02id\x18\x01 \x01(\tR\x02id\x12\x14\n" + "\x05title\x18\x02 \x01(\tR\x05title\x12\x12\n" + "\x04body\x18\x03 \x01(\tR\x04body\x12\x16\n" + "\x06reason\x18\x04 \x01(\tR\x06reason\x12\x1d\n" + "\n" + "created_at\x18\x05 \x01(\tR\tcreatedAt\x12%\n" + "\x0eapplication_id\x18\x06 \x01(\tR\rapplicationId\"5\n" + "\bFeedList\x12)\n" + "\x05items\x18\x01 \x03(\v2\x13.credit.v1.FeedItemR\x05items\"\xa6\x03\n" + "\bOverview\x128\n" + "\vapplication\x18\x01 \x01(\v2\x16.credit.v1.ApplicationR\vapplication\x12=\n" + "\x10company_snapshot\x18\x02 \x01(\v2\x12.credit.v1.CompanyR\x0fcompanySnapshot\x12=\n" + "\x10product_snapshot\x18\x03 \x01(\v2\x12.credit.v1.ProductR\x0fproductSnapshot\x12,\n" + "\ascoring\x18\x04 \x01(\v2\x12.credit.v1.ScoringR\ascoring\x12/\n" + "\bdecision\x18\x05 \x01(\v2\x13.credit.v1.DecisionR\bdecision\x121\n" + "\tdocuments\x18\x06 \x03(\v2\x13.credit.v1.DocumentR\tdocuments\x12P\n" + "\x14information_requests\x18\a \x03(\v2\x1d.credit.v1.InformationRequestR\x13informationRequests2\xa6\x04\n" + "\x0eCompanyService\x12<\n" + "\rCreateCompany\x12\x17.credit.v1.CompanyInput\x1a\x12.credit.v1.Company\x12/\n" + "\n" + "GetCompany\x12\r.credit.v1.ID\x1a\x12.credit.v1.Company\x129\n" + "\rListCompanies\x12\x10.credit.v1.Empty\x1a\x16.credit.v1.CompanyList\x12=\n" + "\rUpdateCompany\x12\x18.credit.v1.CompanyUpdate\x1a\x12.credit.v1.Company\x122\n" + "\rVerifyCompany\x12\r.credit.v1.ID\x1a\x12.credit.v1.Company\x128\n" + "\fListProducts\x12\x10.credit.v1.Empty\x1a\x16.credit.v1.ProductList\x12/\n" + "\n" + "GetProduct\x12\r.credit.v1.ID\x1a\x12.credit.v1.Product\x12J\n" + "\tRecommend\x12\x1e.credit.v1.RecommendationInput\x1a\x1d.credit.v1.RecommendationList\x12@\n" + "\tCalculate\x12\x1b.credit.v1.CalculationInput\x1a\x16.credit.v1.Calculation2\x81\n" + "\n" + "\x12ApplicationService\x12B\n" + "\x11CreateApplication\x12\x15.credit.v1.DraftInput\x1a\x16.credit.v1.Application\x127\n" + "\x0eGetApplication\x12\r.credit.v1.ID\x1a\x16.credit.v1.Application\x12D\n" + "\x10ListApplications\x12\x14.credit.v1.PageInput\x1a\x1a.credit.v1.ApplicationPage\x12D\n" + "\x10BankApplications\x12\x14.credit.v1.PageInput\x1a\x1a.credit.v1.ApplicationPage\x12A\n" + "\x10PatchApplication\x12\x15.credit.v1.PatchInput\x1a\x16.credit.v1.Application\x120\n" + "\bValidate\x12\r.credit.v1.ID\x1a\x15.credit.v1.Validation\x12/\n" + "\x06Submit\x12\r.credit.v1.ID\x1a\x16.credit.v1.Application\x12/\n" + "\x06Cancel\x12\r.credit.v1.ID\x1a\x16.credit.v1.Application\x121\n" + "\vGetDecision\x12\r.credit.v1.ID\x1a\x13.credit.v1.Decision\x128\n" + "\x06Accept\x12\x16.credit.v1.AcceptInput\x1a\x16.credit.v1.Application\x12:\n" + "\aDecline\x12\x17.credit.v1.DeclineInput\x1a\x16.credit.v1.Application\x12'\n" + "\x05Issue\x12\r.credit.v1.ID\x1a\x0f.credit.v1.Loan\x12.\n" + "\aHistory\x12\r.credit.v1.ID\x1a\x14.credit.v1.EventList\x12/\n" + "\n" + "GetScoring\x12\r.credit.v1.ID\x1a\x12.credit.v1.Scoring\x128\n" + "\x06Decide\x12\x16.credit.v1.ManualInput\x1a\x16.credit.v1.Application\x121\n" + "\vGetOverview\x12\r.credit.v1.ID\x1a\x13.credit.v1.Overview\x12@\n" + "\x13InformationRequests\x12\r.credit.v1.ID\x1a\x1a.credit.v1.InformationList\x12-\n" + "\x04Feed\x12\x10.credit.v1.Empty\x1a\x13.credit.v1.FeedList\x127\n" + "\rListDocuments\x12\r.credit.v1.ID\x1a\x17.credit.v1.DocumentList\x12?\n" + "\x0eUploadDocument\x12\x16.credit.v1.UploadChunk\x1a\x13.credit.v1.Document(\x01\x129\n" + "\x0eDeleteDocument\x12\x15.credit.v1.DocumentID\x1a\x10.credit.v1.Empty\x12E\n" + "\x10DownloadDocument\x12\x15.credit.v1.DocumentID\x1a\x18.credit.v1.DownloadChunk0\x012O\n" + "\x0eScoringService\x12=\n" + "\bEvaluate\x12\x17.credit.v1.ScoringInput\x1a\x18.credit.v1.ScoringOutputB%Z#robust/contracts/credit/v1;creditv1b\x06proto3"
+const file_credit_v1_credit_proto_rawDesc = "" + "\n" + "\x16credit/v1/credit.proto\x12\tcredit.v1\"\a\n" + "\x05Empty\"\x14\n" + "\x02ID\x12\x0e\n" + "\x02id\x18\x01 \x01(\tR\x02id\"\x81\x06\n" + "\fCompanyInput\x12\x10\n" + "\x03inn\x18\x01 \x01(\tR\x03inn\x12\x12\n" + "\x04name\x18\x02 \x01(\tR\x04name\x12.\n" + "\x13business_age_months\x18\x03 \x01(\x05R\x11businessAgeMonths\x122\n" + "\x15monthly_revenue_minor\x18\x04 \x01(\x03R\x13monthlyRevenueMinor\x124\n" + "\x16monthly_expenses_minor\x18\x05 \x01(\x03R\x14monthlyExpensesMinor\x12=\n" + "\x1bmonthly_debt_payments_minor\x18\x06 \x01(\x03R\x18monthlyDebtPaymentsMinor\x12\x10\n" + "\x03kpp\x18\a \x01(\tR\x03kpp\x12\x12\n" + "\x04ogrn\x18\b \x01(\tR\x04ogrn\x12\x1a\n" + "\bindustry\x18\t \x01(\tR\bindustry\x12#\n" + "\rregistered_at\x18\n" + " \x01(\tR\fregisteredAt\x12/\n" + "\x13representative_name\x18\v \x01(\tR\x12representativeName\x127\n" + "\x17representative_position\x18\f \x01(\tR\x16representativePosition\x12\x14\n" + "\x05phone\x18\r \x01(\tR\x05phone\x12\x14\n" + "\x05email\x18\x0e \x01(\tR\x05email\x120\n" + "\x14annual_revenue_minor\x18\x0f \x01(\x03R\x12annualRevenueMinor\x122\n" + "\x15annual_expenses_minor\x18\x10 \x01(\x03R\x13annualExpensesMinor\x12&\n" + "\x0fcash_flow_minor\x18\x11 \x01(\x03R\rcashFlowMinor\x124\n" + "\x16outstanding_debt_minor\x18\x12 \x01(\x03R\x14outstandingDebtMinor\x12+\n" + "\x11marketplace_sales\x18\x14 \x01(\bR\x10marketplaceSalesJ\x04\b\x13\x10\x14\"\xdf\x01\n" + "\aCompany\x12\x0e\n" + "\x02id\x18\x01 \x01(\tR\x02id\x12+\n" + "\x04data\x18\x02 \x01(\v2\x17.credit.v1.CompanyInputR\x04data\x12/\n" + "\x13verification_status\x18\x03 \x01(\tR\x12verificationStatus\x121\n" + "\x14verification_message\x18\x04 \x01(\tR\x13verificationMessage\x12\x19\n" + "\bowner_id\x18\x05 \x01(\tR\aownerId\x12\x18\n" + "\aversion\x18\x06 \x01(\x03R\aversion\"7\n" + "\vCompanyList\x12(\n" + "\x05items\x18\x01 \x03(\v2\x12.credit.v1.CompanyR\x05items\"L\n" + "\rCompanyUpdate\x12\x0e\n" + "\x02id\x18\x01 \x01(\tR\x02id\x12+\n" + "\x04data\x18\x02 \x01(\v2\x17.credit.v1.CompanyInputR\x04data\"\xc6\x03\n" + "\aProduct\x12\x0e\n" + "\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" + "\x04name\x18\x02 \x01(\tR\x04name\x12\x1a\n" + "\bpurposes\x18\x03 \x03(\tR\bpurposes\x12(\n" + "\x10min_amount_minor\x18\x04 \x01(\x03R\x0eminAmountMinor\x12(\n" + "\x10max_amount_minor\x18\x05 \x01(\x03R\x0emaxAmountMinor\x12&\n" + "\x0fmin_term_months\x18\x06 \x01(\x05R\rminTermMonths\x12&\n" + "\x0fmax_term_months\x18\a \x01(\x05R\rmaxTermMonths\x12&\n" + "\x0fannual_rate_bps\x18\b \x01(\x05R\rannualRateBps\x126\n" + "\x17required_document_types\x18\t \x03(\tR\x15requiredDocumentTypes\x12 \n" + "\vdescription\x18\n" + " \x01(\tR\vdescription\x12\x1e\n" + "\n" + "collateral\x18\v \x01(\tR\n" + "collateral\x12!\n" + "\fpayment_type\x18\f \x01(\tR\vpaymentType\x12\x12\n" + "\x04tags\x18\r \x03(\tR\x04tags\"7\n" + "\vProductList\x12(\n" + "\x05items\x18\x01 \x03(\v2\x12.credit.v1.ProductR\x05items\"\xa5\x01\n" + "\x04Need\x12\x1d\n" + "\n" + "company_id\x18\x01 \x01(\tR\tcompanyId\x12!\n" + "\famount_minor\x18\x02 \x01(\x03R\vamountMinor\x12\x1f\n" + "\vterm_months\x18\x03 \x01(\x05R\n" + "termMonths\x12\x18\n" + "\apurpose\x18\x04 \x01(\tR\apurpose\x12 \n" + "\vdescription\x18\x05 \x01(\tR\vdescription\"\xc8\x01\n" + "\x13RecommendationInput\x12\x1d\n" + "\n" + "company_id\x18\x01 \x01(\tR\tcompanyId\x12&\n" + "\famount_minor\x18\x02 \x01(\x03H\x00R\vamountMinor\x88\x01\x01\x12\x1f\n" + "\vterm_months\x18\x03 \x01(\x05R\n" + "termMonths\x12\x18\n" + "\apurpose\x18\x04 \x01(\tR\apurpose\x12\x1e\n" + "\n" + "collateral\x18\x05 \x01(\tR\n" + "collateralB\x0f\n" + "\r_amount_minor\"\xd5\x01\n" + "\x0eRecommendation\x12,\n" + "\aproduct\x18\x01 \x01(\v2\x12.credit.v1.ProductR\aproduct\x12\x16\n" + "\x06reason\x18\x02 \x01(\tR\x06reason\x12E\n" + "\x1festimated_monthly_payment_minor\x18\x03 \x01(\x03R\x1cestimatedMonthlyPaymentMinor\x12\"\n" + "\favailability\x18\x04 \x01(\tR\favailability\x12\x12\n" + "\x04rank\x18\x05 \x01(\x05R\x04rank\"E\n" + "\x12RecommendationList\x12/\n" + "\x05items\x18\x01 \x03(\v2\x19.credit.v1.RecommendationR\x05items\"u\n" + "\x10CalculationInput\x12\x1d\n" + "\n" + "product_id\x18\x01 \x01(\tR\tproductId\x12!\n" + "\famount_minor\x18\x02 \x01(\x03R\vamountMinor\x12\x1f\n" + "\vterm_months\x18\x03 \x01(\x05R\n" + "termMonths\"\xb9\x01\n" + "\aPayment\x12\x14\n" + "\x05month\x18\x01 \x01(\x05R\x05month\x12'\n" + "\x0fprincipal_minor\x18\x02 \x01(\x03R\x0eprincipalMinor\x12%\n" + "\x0einterest_minor\x18\x03 \x01(\x03R\rinterestMinor\x12#\n" + "\rpayment_minor\x18\x04 \x01(\x03R\fpaymentMinor\x12#\n" + "\rbalance_minor\x18\x05 \x01(\x03R\fbalanceMinor\"\xee\x01\n" + "\vCalculation\x122\n" + "\x15monthly_payment_minor\x18\x01 \x01(\x03R\x13monthlyPaymentMinor\x12.\n" + "\x13total_payment_minor\x18\x02 \x01(\x03R\x11totalPaymentMinor\x12+\n" + "\x11overpayment_minor\x18\x03 \x01(\x03R\x10overpaymentMinor\x12.\n" + "\bschedule\x18\x04 \x03(\v2\x12.credit.v1.PaymentR\bschedule\x12\x1e\n" + "\n" + "disclaimer\x18\x05 \x01(\tR\n" + "disclaimer\"u\n" + "\aConsent\x128\n" + "\x18personal_data_processing\x18\x01 \x01(\bR\x16personalDataProcessing\x120\n" + "\x14credit_history_check\x18\x02 \x01(\bR\x12creditHistoryCheck\"\x80\x01\n" + "\n" + "DraftInput\x12#\n" + "\x04need\x18\x01 \x01(\v2\x0f.credit.v1.NeedR\x04need\x12\x1d\n" + "\n" + "product_id\x18\x02 \x01(\tR\tproductId\x12.\n" + "\bconsents\x18\x03 \x01(\v2\x12.credit.v1.ConsentR\bconsents\"\x94\x01\n" + "\n" + "DraftPatch\x12#\n" + "\x04need\x18\x01 \x01(\v2\x0f.credit.v1.NeedR\x04need\x12\"\n" + "\n" + "product_id\x18\x02 \x01(\tH\x00R\tproductId\x88\x01\x01\x12.\n" + "\bconsents\x18\x03 \x01(\v2\x12.credit.v1.ConsentR\bconsentsB\r\n" + "\v_product_id\"\x9b\x04\n" + "\vApplication\x12\x0e\n" + "\x02id\x18\x01 \x01(\tR\x02id\x12\x1d\n" + "\n" + "company_id\x18\x02 \x01(\tR\tcompanyId\x12\x1d\n" + "\n" + "product_id\x18\x03 \x01(\tR\tproductId\x12#\n" + "\x04need\x18\x04 \x01(\v2\x0f.credit.v1.NeedR\x04need\x12.\n" + "\bconsents\x18\x05 \x01(\v2\x12.credit.v1.ConsentR\bconsents\x12\x16\n" + "\x06status\x18\x06 \x01(\tR\x06status\x12\x18\n" + "\aversion\x18\a \x01(\x03R\aversion\x12\x1d\n" + "\n" + "created_at\x18\b \x01(\tR\tcreatedAt\x12\x1d\n" + "\n" + "updated_at\x18\t \x01(\tR\tupdatedAt\x12\x1f\n" + "\vnext_action\x18\n" + " \x01(\tR\n" + "nextAction\x12%\n" + "\x0emissing_fields\x18\v \x03(\tR\rmissingFields\x12\x16\n" + "\x06number\x18\f \x01(\tR\x06number\x12!\n" + "\fcompany_name\x18\r \x01(\tR\vcompanyName\x12\x10\n" + "\x03inn\x18\x0e \x01(\tR\x03inn\x12!\n" + "\fproduct_name\x18\x0f \x01(\tR\vproductName\x12&\n" + "\x0erecommendation\x18\x10 \x01(\tR\x0erecommendation\x12\x19\n" + "\bowner_id\x18\x11 \x01(\tR\aownerId\"\xe6\x01\n" + "\tPageInput\x12\x16\n" + "\x06offset\x18\x01 \x01(\x05R\x06offset\x12\x14\n" + "\x05limit\x18\x02 \x01(\x05R\x05limit\x12\x16\n" + "\x06status\x18\x03 \x01(\tR\x06status\x12\x16\n" + "\x06search\x18\x04 \x01(\tR\x06search\x12\x1d\n" + "\n" + "company_id\x18\x05 \x01(\tR\tcompanyId\x12&\n" + "\x0erecommendation\x18\x06 \x01(\tR\x0erecommendation\x12\x1b\n" + "\tfrom_date\x18\a \x01(\tR\bfromDate\x12\x17\n" + "\ato_date\x18\b \x01(\tR\x06toDate\"\xfe\x01\n" + "\x0fApplicationPage\x12,\n" + "\x05items\x18\x01 \x03(\v2\x16.credit.v1.ApplicationR\x05items\x12\x16\n" + "\x06offset\x18\x02 \x01(\x05R\x06offset\x12\x14\n" + "\x05limit\x18\x03 \x01(\x05R\x05limit\x12\x14\n" + "\x05total\x18\x04 \x01(\x03R\x05total\x12>\n" + "\x06counts\x18\x05 \x03(\v2&.credit.v1.ApplicationPage.CountsEntryR\x06counts\x1a9\n" + "\vCountsEntry\x12\x10\n" + "\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" + "\x05value\x18\x02 \x01(\x03R\x05value:\x028\x01\"I\n" + "\n" + "PatchInput\x12\x0e\n" + "\x02id\x18\x01 \x01(\tR\x02id\x12+\n" + "\x05patch\x18\x02 \x01(\v2\x15.credit.v1.DraftPatchR\x05patch\"\x90\x02\n" + "\bDocument\x12\x0e\n" + "\x02id\x18\x01 \x01(\tR\x02id\x12%\n" + "\x0eapplication_id\x18\x02 \x01(\tR\rapplicationId\x12\x12\n" + "\x04type\x18\x03 \x01(\tR\x04type\x12\x1b\n" + "\tfile_name\x18\x04 \x01(\tR\bfileName\x12!\n" + "\fcontent_type\x18\x05 \x01(\tR\vcontentType\x12\x1d\n" + "\n" + "size_bytes\x18\x06 \x01(\x03R\tsizeBytes\x12\x16\n" + "\x06status\x18\a \x01(\tR\x06status\x12\x1a\n" + "\bchecksum\x18\b \x01(\tR\bchecksum\x12&\n" + "\x0frequest_item_id\x18\t \x01(\tR\rrequestItemId\"9\n" + "\fDocumentList\x12)\n" + "\x05items\x18\x01 \x03(\v2\x13.credit.v1.DocumentR\x05items\"\xb3\x01\n" + "\x0eUploadMetadata\x12%\n" + "\x0eapplication_id\x18\x01 \x01(\tR\rapplicationId\x12\x12\n" + "\x04type\x18\x02 \x01(\tR\x04type\x12\x1b\n" + "\tfile_name\x18\x03 \x01(\tR\bfileName\x12!\n" + "\fcontent_type\x18\x04 \x01(\tR\vcontentType\x12&\n" + "\x0frequest_item_id\x18\x05 \x01(\tR\rrequestItemId\"e\n" + "\vUploadChunk\x127\n" + "\bmetadata\x18\x01 \x01(\v2\x19.credit.v1.UploadMetadataH\x00R\bmetadata\x12\x14\n" + "\x04data\x18\x02 \x01(\fH\x00R\x04dataB\a\n" + "\x05value\"T\n" + "\n" + "DocumentID\x12%\n" + "\x0eapplication_id\x18\x01 \x01(\tR\rapplicationId\x12\x1f\n" + "\vdocument_id\x18\x02 \x01(\tR\n" + "documentId\"c\n" + "\rDownloadChunk\x12\x1b\n" + "\tfile_name\x18\x01 \x01(\tR\bfileName\x12!\n" + "\fcontent_type\x18\x02 \x01(\tR\vcontentType\x12\x12\n" + "\x04data\x18\x03 \x01(\fR\x04data\"<\n" + "\n" + "FieldError\x12\x14\n" + "\x05field\x18\x01 \x01(\tR\x05field\x12\x18\n" + "\amessage\x18\x02 \x01(\tR\amessage\"x\n" + "\n" + "Validation\x12\x14\n" + "\x05valid\x18\x01 \x01(\bR\x05valid\x12%\n" + "\x0emissing_fields\x18\x02 \x03(\tR\rmissingFields\x12-\n" + "\x06errors\x18\x03 \x03(\v2\x15.credit.v1.FieldErrorR\x06errors\"\x95\x02\n" + "\x05Offer\x12\x0e\n" + "\x02id\x18\x01 \x01(\tR\x02id\x12\x1d\n" + "\n" + "product_id\x18\x02 \x01(\tR\tproductId\x12!\n" + "\famount_minor\x18\x03 \x01(\x03R\vamountMinor\x12\x1f\n" + "\vterm_months\x18\x04 \x01(\x05R\n" + "termMonths\x12&\n" + "\x0fannual_rate_bps\x18\x05 \x01(\x05R\rannualRateBps\x122\n" + "\x15monthly_payment_minor\x18\x06 \x01(\x03R\x13monthlyPaymentMinor\x12\x1d\n" + "\n" + "expires_at\x18\a \x01(\tR\texpiresAt\x12\x1e\n" + "\n" + "collateral\x18\b \x01(\tR\n" + "collateral\"\x95\x01\n" + "\bDecision\x12\x0e\n" + "\x02id\x18\x01 \x01(\tR\x02id\x12\x18\n" + "\aoutcome\x18\x02 \x01(\tR\aoutcome\x12\x16\n" + "\x06reason\x18\x03 \x01(\tR\x06reason\x12(\n" + "\x06offers\x18\x04 \x03(\v2\x10.credit.v1.OfferR\x06offers\x12\x1d\n" + "\n" + "decided_at\x18\x05 \x01(\tR\tdecidedAt\"\x7f\n" + "\x0fInformationItem\x12\x0e\n" + "\x02id\x18\x01 \x01(\tR\x02id\x12\x14\n" + "\x05title\x18\x02 \x01(\tR\x05title\x12\x12\n" + "\x04type\x18\x03 \x01(\tR\x04type\x12\x1a\n" + "\brequired\x18\x04 \x01(\bR\brequired\x12\x16\n" + "\x06status\x18\x05 \x01(\tR\x06status\"\x8f\x01\n" + "\x12InformationRequest\x12\x0e\n" + "\x02id\x18\x01 \x01(\tR\x02id\x12\x18\n" + "\amessage\x18\x02 \x01(\tR\amessage\x120\n" + "\x05items\x18\x03 \x03(\v2\x1a.credit.v1.InformationItemR\x05items\x12\x1d\n" + "\n" + "created_at\x18\x04 \x01(\tR\tcreatedAt\"F\n" + "\x0fInformationList\x123\n" + "\x05items\x18\x01 \x03(\v2\x1d.credit.v1.InformationRequestR\x05items\"\xc9\x01\n" + "\x0eManualDecision\x12\x18\n" + "\aoutcome\x18\x01 \x01(\tR\aoutcome\x12\x16\n" + "\x06reason\x18\x02 \x01(\tR\x06reason\x12(\n" + "\x06offers\x18\x03 \x03(\v2\x10.credit.v1.OfferR\x06offers\x12)\n" + "\x10requested_fields\x18\x04 \x03(\tR\x0frequestedFields\x120\n" + "\x05items\x18\x05 \x03(\v2\x1a.credit.v1.InformationItemR\x05items\"T\n" + "\vManualInput\x12\x0e\n" + "\x02id\x18\x01 \x01(\tR\x02id\x125\n" + "\bdecision\x18\x02 \x01(\v2\x19.credit.v1.ManualDecisionR\bdecision\"6\n" + "\fDeclineInput\x12\x0e\n" + "\x02id\x18\x01 \x01(\tR\x02id\x12\x16\n" + "\x06reason\x18\x02 \x01(\tR\x06reason\"8\n" + "\vAcceptInput\x12\x0e\n" + "\x02id\x18\x01 \x01(\tR\x02id\x12\x19\n" + "\boffer_id\x18\x02 \x01(\tR\aofferId\"\xb6\x01\n" + "\x04Loan\x12\x0e\n" + "\x02id\x18\x01 \x01(\tR\x02id\x12%\n" + "\x0eapplication_id\x18\x02 \x01(\tR\rapplicationId\x12\x19\n" + "\boffer_id\x18\x03 \x01(\tR\aofferId\x12!\n" + "\famount_minor\x18\x04 \x01(\x03R\vamountMinor\x12\x1b\n" + "\tissued_at\x18\x05 \x01(\tR\bissuedAt\x12\x1c\n" + "\tsimulated\x18\x06 \x01(\bR\tsimulated\"\x9e\x01\n" + "\x05Event\x12\x0e\n" + "\x02id\x18\x01 \x01(\tR\x02id\x12\x0e\n" + "\x02at\x18\x02 \x01(\tR\x02at\x12\x1f\n" + "\vfrom_status\x18\x03 \x01(\tR\n" + "fromStatus\x12\x1b\n" + "\tto_status\x18\x04 \x01(\tR\btoStatus\x12\x18\n" + "\amessage\x18\x05 \x01(\tR\amessage\x12\x1d\n" + "\n" + "actor_role\x18\x06 \x01(\tR\tactorRole\"3\n" + "\tEventList\x12&\n" + "\x05items\x18\x01 \x03(\v2\x10.credit.v1.EventR\x05items\"p\n" + "\x05Check\x12\x16\n" + "\x06source\x18\x01 \x01(\tR\x06source\x12\x16\n" + "\x06status\x18\x02 \x01(\tR\x06status\x12\x18\n" + "\asummary\x18\x03 \x01(\tR\asummary\x12\x1d\n" + "\n" + "checked_at\x18\x04 \x01(\tR\tcheckedAt\"\xcf\x01\n" + "\aScoring\x12\x14\n" + "\x05score\x18\x01 \x01(\x05R\x05score\x12\x1d\n" + "\n" + "risk_level\x18\x02 \x01(\tR\triskLevel\x12\x18\n" + "\afactors\x18\x03 \x03(\tR\afactors\x12#\n" + "\rmodel_version\x18\x04 \x01(\tR\fmodelVersion\x12(\n" + "\x06checks\x18\x05 \x03(\v2\x10.credit.v1.CheckR\x06checks\x12&\n" + "\x0erecommendation\x18\x06 \x01(\tR\x0erecommendation\"\xb5\x01\n" + "\fRegistryData\x12\x16\n" + "\x06status\x18\x01 \x01(\tR\x06status\x12\x1d\n" + "\n" + "legal_form\x18\x02 \x01(\tR\tlegalForm\x12#\n" + "\rokved_section\x18\x03 \x01(\tR\fokvedSection\x12#\n" + "\rregistered_at\x18\x04 \x01(\tR\fregisteredAt\x12$\n" + "\x0etax_debt_minor\x18\x05 \x01(\x03R\ftaxDebtMinor\"\xa5\x01\n" + "\rCreditHistory\x12\x14\n" + "\x05found\x18\x01 \x01(\bR\x05found\x12*\n" + "\x11overdue_count_12m\x18\x02 \x01(\x05R\x0foverdueCount12m\x12/\n" + "\x14max_overdue_days_24m\x18\x03 \x01(\x05R\x11maxOverdueDays24m\x12!\n" + "\factive_loans\x18\x04 \x01(\x05R\vactiveLoans\"r\n" + "\fCreditReport\x122\n" + "\acompany\x18\x01 \x01(\v2\x18.credit.v1.CreditHistoryR\acompany\x12.\n" + "\x05owner\x18\x02 \x01(\v2\x18.credit.v1.CreditHistoryR\x05owner\"Y\n" + "\vAccountData\x12\x14\n" + "\x05found\x18\x01 \x01(\bR\x05found\x124\n" + "\x16turnover_monthly_minor\x18\x02 \x01(\x03R\x14turnoverMonthlyMinor\"\xe5\x03\n" + "\bFeatures\x12.\n" + "\x13business_age_months\x18\x01 \x01(\x05R\x11businessAgeMonths\x122\n" + "\x15monthly_revenue_minor\x18\x02 \x01(\x03R\x13monthlyRevenueMinor\x124\n" + "\x16monthly_expenses_minor\x18\x03 \x01(\x03R\x14monthlyExpensesMinor\x12=\n" + "\x1bmonthly_debt_payments_minor\x18\x04 \x01(\x03R\x18monthlyDebtPaymentsMinor\x124\n" + "\x16requested_amount_minor\x18\x05 \x01(\x03R\x14requestedAmountMinor\x12\x1f\n" + "\vterm_months\x18\x06 \x01(\x05R\n" + "termMonths\x123\n" + "\bregistry\x18\b \x01(\v2\x17.credit.v1.RegistryDataR\bregistry\x12<\n" + "\rcredit_report\x18\t \x01(\v2\x17.credit.v1.CreditReportR\fcreditReport\x120\n" + "\aaccount\x18\n" + " \x01(\v2\x16.credit.v1.AccountDataR\aaccountJ\x04\b\a\x10\b\"\xc5\x01\n" + "\fScoringInput\x12,\n" + "\x12scoring_request_id\x18\x01 \x01(\tR\x10scoringRequestId\x12%\n" + "\x0eapplication_id\x18\x02 \x01(\tR\rapplicationId\x12/\n" + "\x13application_version\x18\x03 \x01(\x03R\x12applicationVersion\x12/\n" + "\bfeatures\x18\x04 \x01(\v2\x13.credit.v1.FeaturesR\bfeatures\"\xc3\x01\n" + "\rScoringOutput\x12,\n" + "\x12scoring_request_id\x18\x01 \x01(\tR\x10scoringRequestId\x12%\n" + "\x0eapplication_id\x18\x02 \x01(\tR\rapplicationId\x12/\n" + "\x13application_version\x18\x03 \x01(\x03R\x12applicationVersion\x12,\n" + "\ascoring\x18\x04 \x01(\v2\x12.credit.v1.ScoringR\ascoring\"\xa2\x01\n" + "\bFeedItem\x12\x0e\n" + "\x02id\x18\x01 \x01(\tR\x02id\x12\x14\n" + "\x05title\x18\x02 \x01(\tR\x05title\x12\x12\n" + "\x04body\x18\x03 \x01(\tR\x04body\x12\x16\n" + "\x06reason\x18\x04 \x01(\tR\x06reason\x12\x1d\n" + "\n" + "created_at\x18\x05 \x01(\tR\tcreatedAt\x12%\n" + "\x0eapplication_id\x18\x06 \x01(\tR\rapplicationId\"5\n" + "\bFeedList\x12)\n" + "\x05items\x18\x01 \x03(\v2\x13.credit.v1.FeedItemR\x05items\"\xa6\x03\n" + "\bOverview\x128\n" + "\vapplication\x18\x01 \x01(\v2\x16.credit.v1.ApplicationR\vapplication\x12=\n" + "\x10company_snapshot\x18\x02 \x01(\v2\x12.credit.v1.CompanyR\x0fcompanySnapshot\x12=\n" + "\x10product_snapshot\x18\x03 \x01(\v2\x12.credit.v1.ProductR\x0fproductSnapshot\x12,\n" + "\ascoring\x18\x04 \x01(\v2\x12.credit.v1.ScoringR\ascoring\x12/\n" + "\bdecision\x18\x05 \x01(\v2\x13.credit.v1.DecisionR\bdecision\x121\n" + "\tdocuments\x18\x06 \x03(\v2\x13.credit.v1.DocumentR\tdocuments\x12P\n" + "\x14information_requests\x18\a \x03(\v2\x1d.credit.v1.InformationRequestR\x13informationRequests2\xa6\x04\n" + "\x0eCompanyService\x12<\n" + "\rCreateCompany\x12\x17.credit.v1.CompanyInput\x1a\x12.credit.v1.Company\x12/\n" + "\n" + "GetCompany\x12\r.credit.v1.ID\x1a\x12.credit.v1.Company\x129\n" + "\rListCompanies\x12\x10.credit.v1.Empty\x1a\x16.credit.v1.CompanyList\x12=\n" + "\rUpdateCompany\x12\x18.credit.v1.CompanyUpdate\x1a\x12.credit.v1.Company\x122\n" + "\rVerifyCompany\x12\r.credit.v1.ID\x1a\x12.credit.v1.Company\x128\n" + "\fListProducts\x12\x10.credit.v1.Empty\x1a\x16.credit.v1.ProductList\x12/\n" + "\n" + "GetProduct\x12\r.credit.v1.ID\x1a\x12.credit.v1.Product\x12J\n" + "\tRecommend\x12\x1e.credit.v1.RecommendationInput\x1a\x1d.credit.v1.RecommendationList\x12@\n" + "\tCalculate\x12\x1b.credit.v1.CalculationInput\x1a\x16.credit.v1.Calculation2\x81\n" + "\n" + "\x12ApplicationService\x12B\n" + "\x11CreateApplication\x12\x15.credit.v1.DraftInput\x1a\x16.credit.v1.Application\x127\n" + "\x0eGetApplication\x12\r.credit.v1.ID\x1a\x16.credit.v1.Application\x12D\n" + "\x10ListApplications\x12\x14.credit.v1.PageInput\x1a\x1a.credit.v1.ApplicationPage\x12D\n" + "\x10BankApplications\x12\x14.credit.v1.PageInput\x1a\x1a.credit.v1.ApplicationPage\x12A\n" + "\x10PatchApplication\x12\x15.credit.v1.PatchInput\x1a\x16.credit.v1.Application\x120\n" + "\bValidate\x12\r.credit.v1.ID\x1a\x15.credit.v1.Validation\x12/\n" + "\x06Submit\x12\r.credit.v1.ID\x1a\x16.credit.v1.Application\x12/\n" + "\x06Cancel\x12\r.credit.v1.ID\x1a\x16.credit.v1.Application\x121\n" + "\vGetDecision\x12\r.credit.v1.ID\x1a\x13.credit.v1.Decision\x128\n" + "\x06Accept\x12\x16.credit.v1.AcceptInput\x1a\x16.credit.v1.Application\x12:\n" + "\aDecline\x12\x17.credit.v1.DeclineInput\x1a\x16.credit.v1.Application\x12'\n" + "\x05Issue\x12\r.credit.v1.ID\x1a\x0f.credit.v1.Loan\x12.\n" + "\aHistory\x12\r.credit.v1.ID\x1a\x14.credit.v1.EventList\x12/\n" + "\n" + "GetScoring\x12\r.credit.v1.ID\x1a\x12.credit.v1.Scoring\x128\n" + "\x06Decide\x12\x16.credit.v1.ManualInput\x1a\x16.credit.v1.Application\x121\n" + "\vGetOverview\x12\r.credit.v1.ID\x1a\x13.credit.v1.Overview\x12@\n" + "\x13InformationRequests\x12\r.credit.v1.ID\x1a\x1a.credit.v1.InformationList\x12-\n" + "\x04Feed\x12\x10.credit.v1.Empty\x1a\x13.credit.v1.FeedList\x127\n" + "\rListDocuments\x12\r.credit.v1.ID\x1a\x17.credit.v1.DocumentList\x12?\n" + "\x0eUploadDocument\x12\x16.credit.v1.UploadChunk\x1a\x13.credit.v1.Document(\x01\x129\n" + "\x0eDeleteDocument\x12\x15.credit.v1.DocumentID\x1a\x10.credit.v1.Empty\x12E\n" + "\x10DownloadDocument\x12\x15.credit.v1.DocumentID\x1a\x18.credit.v1.DownloadChunk0\x012O\n" + "\x0eScoringService\x12=\n" + "\bEvaluate\x12\x17.credit.v1.ScoringInput\x1a\x18.credit.v1.ScoringOutputB%Z#robust/contracts/credit/v1;creditv1b\x06proto3"
 
 var (
 	file_credit_v1_credit_proto_rawDescOnce sync.Once
@@ -3233,9 +3459,9 @@ func file_credit_v1_credit_proto_rawDescGZIP() []byte {
 	return file_credit_v1_credit_proto_rawDescData
 }
 
-var file_credit_v1_credit_proto_msgTypes = make([]protoimpl.MessageInfo, 51)
-var file_credit_v1_credit_proto_goTypes = []any{(*Empty)(nil), (*ID)(nil), (*CompanyInput)(nil), (*Company)(nil), (*CompanyList)(nil), (*CompanyUpdate)(nil), (*Product)(nil), (*ProductList)(nil), (*Need)(nil), (*RecommendationInput)(nil), (*Recommendation)(nil), (*RecommendationList)(nil), (*CalculationInput)(nil), (*Payment)(nil), (*Calculation)(nil), (*Consent)(nil), (*DraftInput)(nil), (*DraftPatch)(nil), (*Application)(nil), (*PageInput)(nil), (*ApplicationPage)(nil), (*PatchInput)(nil), (*Document)(nil), (*DocumentList)(nil), (*UploadMetadata)(nil), (*UploadChunk)(nil), (*DocumentID)(nil), (*DownloadChunk)(nil), (*FieldError)(nil), (*Validation)(nil), (*Offer)(nil), (*Decision)(nil), (*InformationItem)(nil), (*InformationRequest)(nil), (*InformationList)(nil), (*ManualDecision)(nil), (*ManualInput)(nil), (*DeclineInput)(nil), (*AcceptInput)(nil), (*Loan)(nil), (*Event)(nil), (*EventList)(nil), (*Check)(nil), (*Scoring)(nil), (*Features)(nil), (*ScoringInput)(nil), (*ScoringOutput)(nil), (*FeedItem)(nil), (*FeedList)(nil), (*Overview)(nil), nil}
-var file_credit_v1_credit_proto_depIdxs = []int32{2, 3, 2, 6, 6, 10, 13, 8, 15, 8, 15, 8, 15, 18, 50, 17, 22, 24, 28, 30, 32, 33, 30, 32, 35, 40, 42, 44, 43, 47, 18, 3, 6, 43, 31, 22, 33, 2, 1, 0, 5, 1, 0, 1, 9, 12, 16, 1, 19, 19, 21, 1, 1, 1, 1, 38, 37, 1, 1, 1, 36, 1, 1, 0, 1, 25, 26, 26, 45, 3, 3, 4, 3, 3, 7, 6, 11, 14, 18, 18, 20, 20, 18, 29, 18, 18, 31, 18, 18, 39, 41, 43, 18, 49, 34, 48, 23, 22, 0, 27, 46, 69, 37, 37, 37, 0}
+var file_credit_v1_credit_proto_msgTypes = make([]protoimpl.MessageInfo, 55)
+var file_credit_v1_credit_proto_goTypes = []any{(*Empty)(nil), (*ID)(nil), (*CompanyInput)(nil), (*Company)(nil), (*CompanyList)(nil), (*CompanyUpdate)(nil), (*Product)(nil), (*ProductList)(nil), (*Need)(nil), (*RecommendationInput)(nil), (*Recommendation)(nil), (*RecommendationList)(nil), (*CalculationInput)(nil), (*Payment)(nil), (*Calculation)(nil), (*Consent)(nil), (*DraftInput)(nil), (*DraftPatch)(nil), (*Application)(nil), (*PageInput)(nil), (*ApplicationPage)(nil), (*PatchInput)(nil), (*Document)(nil), (*DocumentList)(nil), (*UploadMetadata)(nil), (*UploadChunk)(nil), (*DocumentID)(nil), (*DownloadChunk)(nil), (*FieldError)(nil), (*Validation)(nil), (*Offer)(nil), (*Decision)(nil), (*InformationItem)(nil), (*InformationRequest)(nil), (*InformationList)(nil), (*ManualDecision)(nil), (*ManualInput)(nil), (*DeclineInput)(nil), (*AcceptInput)(nil), (*Loan)(nil), (*Event)(nil), (*EventList)(nil), (*Check)(nil), (*Scoring)(nil), (*RegistryData)(nil), (*CreditHistory)(nil), (*CreditReport)(nil), (*AccountData)(nil), (*Features)(nil), (*ScoringInput)(nil), (*ScoringOutput)(nil), (*FeedItem)(nil), (*FeedList)(nil), (*Overview)(nil), nil}
+var file_credit_v1_credit_proto_depIdxs = []int32{2, 3, 2, 6, 6, 10, 13, 8, 15, 8, 15, 8, 15, 18, 54, 17, 22, 24, 28, 30, 32, 33, 30, 32, 35, 40, 42, 45, 45, 44, 46, 47, 48, 43, 51, 18, 3, 6, 43, 31, 22, 33, 2, 1, 0, 5, 1, 0, 1, 9, 12, 16, 1, 19, 19, 21, 1, 1, 1, 1, 38, 37, 1, 1, 1, 36, 1, 1, 0, 1, 25, 26, 26, 49, 3, 3, 4, 3, 3, 7, 6, 11, 14, 18, 18, 20, 20, 18, 29, 18, 18, 31, 18, 18, 39, 41, 43, 18, 53, 34, 52, 23, 22, 0, 27, 50, 74, 42, 42, 42, 0}
 
 func init() {
 	file_credit_v1_credit_proto_init()
@@ -3248,7 +3474,7 @@ func file_credit_v1_credit_proto_init() {
 	file_credit_v1_credit_proto_msgTypes[17].OneofWrappers = []any{}
 	file_credit_v1_credit_proto_msgTypes[25].OneofWrappers = []any{(*UploadChunk_Metadata)(nil), (*UploadChunk_Data)(nil)}
 	type x struct{}
-	out := protoimpl.TypeBuilder{File: protoimpl.DescBuilder{GoPackagePath: reflect.TypeOf(x{}).PkgPath(), RawDescriptor: unsafe.Slice(unsafe.StringData(file_credit_v1_credit_proto_rawDesc), len(file_credit_v1_credit_proto_rawDesc)), NumEnums: 0, NumMessages: 51, NumExtensions: 0, NumServices: 3}, GoTypes: file_credit_v1_credit_proto_goTypes, DependencyIndexes: file_credit_v1_credit_proto_depIdxs, MessageInfos: file_credit_v1_credit_proto_msgTypes}.Build()
+	out := protoimpl.TypeBuilder{File: protoimpl.DescBuilder{GoPackagePath: reflect.TypeOf(x{}).PkgPath(), RawDescriptor: unsafe.Slice(unsafe.StringData(file_credit_v1_credit_proto_rawDesc), len(file_credit_v1_credit_proto_rawDesc)), NumEnums: 0, NumMessages: 55, NumExtensions: 0, NumServices: 3}, GoTypes: file_credit_v1_credit_proto_goTypes, DependencyIndexes: file_credit_v1_credit_proto_depIdxs, MessageInfos: file_credit_v1_credit_proto_msgTypes}.Build()
 	File_credit_v1_credit_proto = out.File
 	file_credit_v1_credit_proto_goTypes = nil
 	file_credit_v1_credit_proto_depIdxs = nil

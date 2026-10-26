@@ -93,6 +93,7 @@ test-go:
 
 test-python: deps
 	@cd "$(ROOT)/scoring" && PYTHONPATH=generated:. "$(VPY)" -m pytest tests -q
+	@cd "$(ROOT)/mocks" && PYTHONPATH=. "$(VPY)" -m unittest discover -s tests
 
 test:
 	@$(RUN) test-go

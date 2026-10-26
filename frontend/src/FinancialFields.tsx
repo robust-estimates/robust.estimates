@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 
-type Financials = { revenue: number; expenses: number; debts: number; overdue: boolean }
+type Financials = { revenue: number; expenses: number; debts: number }
 
 function FinancialInput({ value, onChange }: { value: number; onChange: (value: number) => void }) {
   const [text, setText] = useState(String(value))
@@ -56,14 +56,6 @@ export function FinancialFields({
           />
         </label>
       ))}
-      <label className="financial-overdue">
-        <input
-          type="checkbox"
-          checked={value.overdue}
-          onChange={(event) => onChange({ ...value, overdue: event.target.checked })}
-        />
-        <span>Есть просроченная задолженность</span>
-      </label>
     </fieldset>
   )
 }

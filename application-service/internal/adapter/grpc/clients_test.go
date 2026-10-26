@@ -12,6 +12,7 @@ import (
 
 	"robust/application-service/internal/domain"
 	pb "robust/contracts/credit/v1"
+	"robust/platform"
 )
 
 type recoveringScoring struct {
@@ -66,5 +67,20 @@ func TestScoringWaitsForReconnection(t *testing.T) {
 	}
 	if result.Score != 740 || result.RiskLevel != "LOW" {
 		t.Fatalf("unexpected recovered result: %+v", result)
+	}
+}
+
+func TestFeaturesKeepExternalDataInProto(t *testing.T) {
+	in := domain.ScoringInput{ScoringRequestID: "job", ApplicationID: "app", ApplicationVersion: 1, Features: domain.Features{
+		Registry:     &domain.RegistryData{Status: "ACTIVE", OkvedSection: "G", TaxDebtMinor: 500},
+		CreditReport: &domain.CreditReport{Owner: &domain.CreditHistory{Found: true, OverdueCount12m: 2, MaxOverdueDays24m: 45}},
+	}}
+	out := platform.PB(in, &pb.ScoringInput{})
+	f := out.Features
+	if f.Registry.GetOkvedSection() != "G" || f.Registry.GetTaxDebtMinor() != 500 || f.CreditReport.GetOwner().GetOverdueCount_12M() != 2 {
+		t.Fatalf("external data lost in proto: %v", f)
+	}
+	if f.CreditReport.Company != nil || f.Account != nil {
+		t.Fatal("missing sources must stay unset")
 	}
 }

@@ -1,5 +1,5 @@
 from risk.rules_v1 import MODEL_VERSION, assess_risk
-from schema import Application, CreditHistory, RiskLevel
+from schema import Application, CreditHistory, LegalForm, RiskLevel
 
 CLEAN_HISTORY = CreditHistory(overdues_30_plus_12m=0, max_overdue_days_24m=0, active_loans=1)
 
@@ -14,6 +14,8 @@ def make_app(**overrides) -> Application:
         company_credit_history=CLEAN_HISTORY,
         owner_credit_history=CLEAN_HISTORY,
         account_turnover_monthly_minor=250_000_000,
+        legal_form=LegalForm.OOO,
+        credit_bureau_checked=True,
     )
     return Application(**(fields | overrides))
 
@@ -61,3 +63,18 @@ def test_to_api_matches_scoring_schema():
     assert api["riskLevel"] in {"LOW", "MEDIUM", "HIGH"}
     assert all(isinstance(f, str) for f in api["factors"])
     assert api["modelVersion"] == MODEL_VERSION
+
+
+def test_unrequested_credit_history_is_not_penalized():
+    risk = assess_risk(make_app(company_credit_history=None, owner_credit_history=None, credit_bureau_checked=False))
+    assert not any("кредитной истории" in f.text for f in risk.factors)
+
+
+def test_ip_has_no_company_history_factor():
+    risk = assess_risk(make_app(legal_form=LegalForm.IP, company_credit_history=None))
+    assert not any("компании" in f.text for f in risk.factors)
+
+
+def test_industry_factor():
+    assert any(f.text == "Отрасль: IT и связь: +30" for f in assess_risk(make_app(okved_section="J")).factors)
+    assert not any(f.feature == "okved_section" for f in assess_risk(make_app(okved_section="G")).factors)

@@ -51,6 +51,7 @@ class Application:
 
     company_credit_history: CreditHistory | None = None
     owner_credit_history: CreditHistory | None = None
+    credit_bureau_checked: bool = False
 
 
     account_turnover_monthly_minor: int | None = None

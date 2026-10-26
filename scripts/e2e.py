@@ -68,8 +68,8 @@ def login(name):
     return request("POST", "/auth/login", body={"login": name + "@demo.local", "password": PASSWORD})["accessToken"]
 
 
-def company(token, age=36, revenue=300000000, overdue=False):
-    payload = {"inn": "7700000000", "name": "Синтетическая компания " + uuid.uuid4().hex[:6], "businessAgeMonths": age, "monthlyRevenueMinor": revenue, "monthlyExpensesMinor": revenue // 2, "monthlyDebtPaymentsMinor": 0, "hasOverdueDebt": overdue}
+def company(token, age=36, revenue=300000000, inn="7700000000"):
+    payload = {"inn": inn, "name": "Синтетическая компания " + uuid.uuid4().hex[:6], "businessAgeMonths": age, "monthlyRevenueMinor": revenue, "monthlyExpensesMinor": revenue // 2, "monthlyDebtPaymentsMinor": 0}
     c = request("POST", "/companies", token, payload, expected=201)
     request("POST", f'/companies/{c["id"]}/verification', token)
 
@@ -184,7 +184,7 @@ def run():
     assert d["offers"][0]["amountMinor"] < 500000000
     command(client, alt, "decline", {"reason": "Не подходит"})
     print("PASS alternative offer and client decline")
-    manual_company = company(client, age=6, overdue=True)
+    manual_company = company(client, age=6, inn="0000090029")
     manual = draft(client, manual_company)
     command(client, manual, "submit", expected=202)
     wait(client, manual, {"MANUAL_CHECK"})
@@ -220,7 +220,37 @@ def run():
     feed = request("GET", "/feed", client)
     assert any(x.get("applicationId") == a["id"] for x in feed)
     print("PASS cancellation and personalized feed")
+    external_profiles(client, employee)
+    print("PASS external FNS/BKI mock profiles")
     print("ALL E2E CHECKS PASSED")
+
+
+def scored(client, employee, inn, statuses):
+    app = draft(client, company(client, inn=inn))
+    command(client, app, "submit", expected=202)
+    wait(client, app, statuses)
+    scoring = request("GET", f'/bank/applications/{app["id"]}/scoring', employee)
+
+    return fresh(client, app), {x["source"]: x for x in scoring["checks"]}, scoring
+
+
+def external_profiles(client, employee):
+    app, checks, scoring = scored(client, employee, "7700000000", {"APPROVED"})
+    assert checks["FNS_MOCK"]["status"] == "PASSED" and checks["BKI_MOCK"]["status"] == "PASSED"
+    assert any("Нет просрочек у собственника" in x for x in scoring["factors"])
+
+    app, checks, scoring = scored(client, employee, "0000090029", {"MANUAL_CHECK"})
+    assert checks["BKI_MOCK"]["status"] == "FAILED"
+    assert any("Просрочки 30+ дней у собственника" in x for x in scoring["factors"])
+
+    app, checks, scoring = scored(client, employee, "0000090036", {"MANUAL_CHECK"})
+    assert checks["FNS_MOCK"]["status"] == "FAILED" and "налоговая задолженность 120 000 ₽" in checks["FNS_MOCK"]["summary"]
+
+    app, checks, _ = scored(client, employee, "0000090043", {"REJECTED"})
+    assert checks["FNS_MOCK"]["status"] == "FAILED"
+
+    app, checks, _ = scored(client, employee, "000000900682", {"MANUAL_CHECK"})
+    assert checks["BKI_MOCK"]["status"] == "UNAVAILABLE"
 
 if __name__ == "__main__":
     run()

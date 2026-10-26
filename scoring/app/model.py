@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
 from risk.rules_v1 import MODEL_VERSION, assess_risk
-from schema import Application, CreditHistory
+from schema import Application, CreditHistory, LegalForm
 
 
 @dataclass(frozen=True)
@@ -12,11 +12,29 @@ class Risk:
     recommendation: str
 
 
+def _present(message, field: str):
+    return getattr(message, field) if message is not None and message.HasField(field) else None
+
+
+def _history(report, field: str) -> CreditHistory | None:
+    history = _present(report, field)
+    if history is None or not history.found:
+        return None
+    return CreditHistory(
+        overdues_30_plus_12m=history.overdue_count_12m,
+        max_overdue_days_24m=history.max_overdue_days_24m,
+        active_loans=history.active_loans,
+    )
+
+
 class RuleModel:
     version = MODEL_VERSION
 
     def evaluate(self, features):
-        overdue = bool(features.has_overdue_debt)
+        registry = _present(features, "registry")
+        report = _present(features, "credit_report")
+        account = _present(features, "account")
+
         application = Application(
             business_age_months=features.business_age_months,
             monthly_revenue_minor=features.monthly_revenue_minor,
@@ -24,11 +42,13 @@ class RuleModel:
             monthly_debt_payments_minor=features.monthly_debt_payments_minor,
             requested_amount_minor=features.requested_amount_minor,
             requested_term_months=features.term_months,
-            company_credit_history=CreditHistory(
-                overdues_30_plus_12m=1 if overdue else 0,
-                max_overdue_days_24m=90 if overdue else 0,
-                active_loans=1 if features.monthly_debt_payments_minor > 0 else 0,
-            ),
+            legal_form=LegalForm(registry.legal_form) if registry and registry.legal_form in LegalForm else None,
+            okved_section=registry.okved_section or None if registry else None,
+            tax_debt_minor=registry.tax_debt_minor if registry else None,
+            company_credit_history=_history(report, "company"),
+            owner_credit_history=_history(report, "owner"),
+            credit_bureau_checked=report is not None,
+            account_turnover_monthly_minor=account.turnover_monthly_minor if account and account.found else None,
         )
         result = assess_risk(application)
         level = result.risk_level.value

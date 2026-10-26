@@ -33,7 +33,6 @@ export function CompanyProfile({
     revenue: (company?.monthlyRevenueMinor || 0) / 100,
     expenses: (company?.monthlyExpensesMinor || 0) / 100,
     debts: (company?.monthlyDebtPaymentsMinor || 0) / 100,
-    overdue: company?.hasOverdueDebt || false,
   })
   const [pending, setPending] = useState(false)
   const [error, setError] = useState('')

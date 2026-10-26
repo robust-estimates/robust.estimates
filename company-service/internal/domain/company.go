@@ -25,7 +25,6 @@ type Input struct {
 	AnnualExpensesMinor      int64  `json:"annualExpensesMinor"`
 	CashFlowMinor            int64  `json:"cashFlowMinor"`
 	OutstandingDebtMinor     int64  `json:"outstandingDebtMinor"`
-	HasOverdueDebt           bool   `json:"hasOverdueDebt"`
 	MarketplaceSales         bool   `json:"marketplaceSales"`
 }
 

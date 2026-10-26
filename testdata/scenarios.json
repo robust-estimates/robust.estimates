@@ -20,8 +20,7 @@
       "businessAgeMonths": 36,
       "monthlyRevenueMinor": 300000000,
       "monthlyExpensesMinor": 150000000,
-      "monthlyDebtPaymentsMinor": 0,
-      "hasOverdueDebt": false
+      "monthlyDebtPaymentsMinor": 0
     },
     "alternative": {
       "inn": "7700000000",
@@ -29,18 +28,16 @@
       "businessAgeMonths": 36,
       "monthlyRevenueMinor": 30000000,
       "monthlyExpensesMinor": 15000000,
-      "monthlyDebtPaymentsMinor": 0,
-      "hasOverdueDebt": false
+      "monthlyDebtPaymentsMinor": 0
     },
     "manual": {
-      "inn": "7700000000",
+      "inn": "0000090029",
       "name": "Синтетический стартап",
       "businessAgeMonths": 6,
       "monthlyRevenueMinor": 300000000,
       "monthlyExpensesMinor": 150000000,
-      "monthlyDebtPaymentsMinor": 0,
-      "hasOverdueDebt": true
+      "monthlyDebtPaymentsMinor": 0
     }
   },
-  "note": "Все данные синтетические. Создайте компанию через API и выполните verification. Сквозной сценарий создаёт scripts/e2e.py. Пароль задан DEMO_PASSWORD."
+  "note": "Все данные синтетические. Создайте компанию через API и выполните verification. Сквозной сценарий создаёт scripts/e2e.py. Пароль задан DEMO_PASSWORD. ИНН 0000090029 — профиль мока БКИ с просрочками у собственника; остальные профили — mocks/profiles.json."
 }

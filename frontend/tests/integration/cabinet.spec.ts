@@ -109,7 +109,7 @@ test('ручная проверка: сотрудник запрашивает �
   baseURL,
 }) => {
   const { session } = await newClient(page)
-  await fillApplication(page, { overdue: true })
+  await fillApplication(page, { inn: '0000090029' })
   const id = await submitApplication(page)
   const headers = { Authorization: `Bearer ${session.accessToken}` }
   await expect
@@ -136,7 +136,7 @@ test('ручная проверка: сотрудник запрашивает �
   await expect(staff.locator('.score-circle strong')).not.toHaveText('0')
   await staff.getByRole('button', { name: 'Подробнее о скоринге' }).click()
   await expect(staff.locator('.scoring-popover')).toContainText(
-    'Нет кредитной истории собственника',
+    'Просрочки 30+ дней у собственника за год: 3',
   )
   await staff.getByRole('button', { name: 'Решение', exact: true }).click()
   await staff.getByRole('button', { name: 'Запросить данные', exact: true }).click()

@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from schema import Application, CreditHistory, RiskLevel
+from schema import Application, CreditHistory, LegalForm, RiskLevel
 
 MODEL_VERSION = "rules-v1"
 
@@ -9,6 +9,10 @@ MIN_SCORE, MAX_SCORE = 0, 1000
 
 LOW_FROM = 700
 MEDIUM_FROM = 500
+
+OKVED_POINTS = {"I": -40, "F": -30, "H": -20, "S": -10, "M": 20, "J": 30}
+OKVED_NAMES = {"I": "общепит и гостиницы", "F": "строительство", "H": "транспорт", "S": "прочие услуги",
+               "M": "профессиональные услуги", "J": "IT и связь"}
 
 
 @dataclass(frozen=True)
@@ -83,9 +87,11 @@ def _revenue_based(app: Application) -> list[Factor]:
     ]
 
 
-def _credit_history(history: CreditHistory | None, feature: str, whose: str) -> Factor:
+def _credit_history(history: CreditHistory | None, checked: bool, feature: str, whose: str) -> Factor | None:
     if history is None:
-        return _factor(feature, "нет данных", -20, f"Нет кредитной истории {whose}")
+        if not checked:
+            return None
+        return _factor(feature, "нет истории", -20, f"Нет кредитной истории {whose}")
     if history.max_overdue_days_24m >= 90:
         return _factor(feature, f"{history.max_overdue_days_24m} дн.", -250,
                        f"Просрочка 90+ дней у {whose} за 2 года")
@@ -93,6 +99,13 @@ def _credit_history(history: CreditHistory | None, feature: str, whose: str) -> 
         return _factor(feature, str(history.overdues_30_plus_12m), -200,
                        f"Просрочки 30+ дней у {whose} за год: {history.overdues_30_plus_12m}")
     return _factor(feature, "0", 30, f"Нет просрочек у {whose}")
+
+
+def _industry(okved_section: str | None) -> Factor | None:
+    points = OKVED_POINTS.get(okved_section or "")
+    if points is None:
+        return None
+    return _factor("okved_section", okved_section, points, f"Отрасль: {OKVED_NAMES[okved_section]}")
 
 
 def _tax_debt(tax_debt_minor: int | None) -> Factor | None:
@@ -120,13 +133,17 @@ def risk_level(score: int) -> RiskLevel:
 
 
 def assess_risk(app: Application) -> Risk:
+    company_checked = app.credit_bureau_checked and app.legal_form == LegalForm.OOO
     factors = [
         _business_age(app.business_age_months),
         *_revenue_based(app),
-        _credit_history(app.company_credit_history, "company_credit_history", "компании"),
-        _credit_history(app.owner_credit_history, "owner_credit_history", "собственника"),
+        _credit_history(app.company_credit_history, company_checked, "company_credit_history", "компании"),
+        _credit_history(app.owner_credit_history, app.credit_bureau_checked, "owner_credit_history", "собственника"),
+        _tax_debt(app.tax_debt_minor),
+        _bank_client(app.account_turnover_monthly_minor),
+        _industry(app.okved_section),
     ]
-    factors += [f for f in (_tax_debt(app.tax_debt_minor), _bank_client(app.account_turnover_monthly_minor)) if f]
+    factors = [f for f in factors if f]
 
     score = BASE_POINTS + sum(f.points for f in factors)
     score = max(MIN_SCORE, min(MAX_SCORE, score))

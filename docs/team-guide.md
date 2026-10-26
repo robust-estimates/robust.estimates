@@ -135,7 +135,11 @@
 - `monthly_revenue_minor`, `monthly_expenses_minor`, `monthly_debt_payments_minor` — месячные суммы в копейках;
 - `requested_amount_minor` — запрошенная сумма в копейках;
 - `term_months` — срок в месяцах;
-- `has_overdue_debt` — наличие просроченной задолженности.
+- `registry` — данные ФНС из мока: статус, ИП/ООО, ОКВЭД, дата регистрации, налоговый долг;
+- `credit_report` — кредитная история компании и собственника из мока БКИ (запрашивается только при согласии клиента);
+- `account` — обороты по счёту в банке из внутреннего мока.
+
+Если сообщение `registry`, `credit_report` или `account` не заполнено, источник не запрашивали или он не ответил; скоринг не подставляет вместо этого нули.
 
 Результат содержит `score` от 0 до 1000, `risk_level` (`LOW`, `MEDIUM`, `HIGH`), `factors`, `model_version` и `recommendation` (`APPROVE`, `MANUAL_REVIEW`, `REJECT`). Текущий `Risk` использует имя `level`, а `server.py` преобразует его в protobuf `risk_level`. Идентификаторы `scoring_request_id`, `application_id`, `application_version` должны вернуться без изменений; текущий сервер это уже делает.
 

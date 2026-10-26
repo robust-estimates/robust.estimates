@@ -46,6 +46,7 @@ type Service struct {
 	Companies CompanyProvider
 	Scorer    Scorer
 	Storage   ObjectStorage
+	External  ExternalSources
 }
 
 func (s *Service) Get(ctx context.Context, id string) (domain.Aggregate, error) {
@@ -708,8 +709,8 @@ func (s *Service) Process(ctx context.Context) error {
 		return e
 	}
 
-	f := a.CompanySnapshot.Data
-	score, scoreErr := s.Scorer.Evaluate(ctx, domain.ScoringInput{ScoringRequestID: job.ID, ApplicationID: a.ID, ApplicationVersion: job.Revision, Features: domain.Features{BusinessAgeMonths: f.BusinessAgeMonths, MonthlyRevenueMinor: f.MonthlyRevenueMinor, MonthlyExpensesMinor: f.MonthlyExpensesMinor, MonthlyDebtPaymentsMinor: f.MonthlyDebtPaymentsMinor, RequestedAmountMinor: a.Need.AmountMinor, TermMonths: a.Need.TermMonths, HasOverdueDebt: f.HasOverdueDebt}})
+	features, checks := s.collect(ctx, a)
+	score, scoreErr := s.Scorer.Evaluate(ctx, domain.ScoringInput{ScoringRequestID: job.ID, ApplicationID: a.ID, ApplicationVersion: job.Revision, Features: features})
 	if scoreErr != nil && job.Attempts < 3 {
 		return s.Repo.Complete(ctx, *job, nil, true)
 	}
@@ -717,6 +718,12 @@ func (s *Service) Process(ctx context.Context) error {
 	return s.Repo.Complete(ctx, *job, func(current *domain.Aggregate) error {
 		if scoreErr != nil {
 			TechnicalReview(current)
+			return nil
+		}
+
+		score.Checks = checks
+		if reason := stopReason(features); reason != "" {
+			Reject(current, score, reason)
 		} else {
 			Finish(current, score)
 		}
@@ -744,12 +751,25 @@ func (s *Service) Reconcile(ctx context.Context) error {
 	return nil
 }
 
+func Reject(a *domain.Aggregate, score domain.Scoring, reason string) {
+	a.Scoring = &score
+	a.Recommendation = "REJECT"
+	a.Decision = &domain.Decision{ID: platform.ID(), Outcome: "REJECTED", Reason: reason, Offers: []domain.Offer{}, DecidedAt: platform.Now()}
+	event(a, "CHECKED", "Проверки завершены", "SYSTEM")
+	event(a, "REJECTED", "Сформировано решение банка", "SYSTEM")
+}
+
 func Finish(a *domain.Aggregate, score domain.Scoring) {
 	a.Scoring = &score
-	a.Scoring.Checks = []domain.Check{{Source: "FNS_MOCK", Status: "PASSED", Summary: "Локальная проверка компании", CheckedAt: platform.Now()}, {Source: "BKI_MOCK", Status: "PASSED", Summary: "Синтетическая кредитная история", CheckedAt: platform.Now()}}
 	a.Recommendation = score.Recommendation
 	if score.RiskLevel != "LOW" {
 		event(a, "MANUAL_CHECK", "Требуется решение сотрудника", "SYSTEM")
+		return
+	}
+
+	if !checksPassed(score.Checks) {
+		a.Recommendation = "MANUAL_REVIEW"
+		event(a, "MANUAL_CHECK", "Внешние проверки требуют внимания сотрудника", "SYSTEM")
 		return
 	}
 

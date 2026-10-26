@@ -3621,12 +3621,10 @@ button.nav-link:hover {
   white-space: normal;
   align-items: flex-start;
 }
-.consent input,
-.financial-overdue input {
+.consent input {
   flex: 0 0 auto;
 }
-.consent span,
-.financial-overdue span {
+.consent span {
   min-width: 0;
   overflow-wrap: anywhere;
 }
@@ -3640,12 +3638,6 @@ button.nav-link:hover {
   font-size: 16px;
   font-weight: 600;
   padding: 0 6px;
-}
-.financial-overdue {
-  display: flex;
-  gap: 8px;
-  align-items: flex-start;
-  line-height: 1.4;
 }
 .company-profile-form > fieldset {
   display: grid;

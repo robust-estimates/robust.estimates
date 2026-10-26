@@ -66,7 +66,7 @@ export type LoanApplication = {
   apiDocuments?: ApiDocument[]
   offer?: ApiOffer
   information?: ApiInformation
-  financials?: { revenue: number; expenses: number; debts: number; overdue: boolean }
+  financials?: { revenue: number; expenses: number; debts: number }
   id: string
   productId: string
   amount: number

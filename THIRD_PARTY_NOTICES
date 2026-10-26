@@ -20,4 +20,4 @@ Exact direct and transitive Go dependencies: each module's go.mod/go.sum.
 Exact Python runtime dependencies: scoring/requirements.txt.
 Generated bindings originate from this repository's api/proto/credit/v1/credit.proto.
 
-No third-party datasets or trained ML models are bundled. rules-v1 is a local deterministic demonstration model. FNS/BKI integrations are local simulations. Signing and loan issuance are simulated; no money is transferred. Demo companies, accounts and documents are synthetic.
+No third-party datasets or trained ML models are bundled. rules-v1 is a local deterministic demonstration model. FNS, BKI and bank account integrations are simulated by the local external-mocks service (mocks/); its data is synthetic and derived from the INN. Signing and loan issuance are simulated; no money is transferred. Demo companies, accounts and documents are synthetic.

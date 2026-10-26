@@ -1,0 +1,219 @@
+{
+  "7700000000": {
+    "title": "Надёжная компания для сквозных сценариев",
+    "fns": {
+      "status": "ACTIVE",
+      "okvedSection": "G",
+      "registeredAt": "2023-09-01",
+      "taxDebtMinor": 0
+    },
+    "bki": {
+      "company": {
+        "found": true,
+        "overdueCount12m": 0,
+        "maxOverdueDays24m": 0,
+        "activeLoans": 1
+      },
+      "owner": {
+        "found": true,
+        "overdueCount12m": 0,
+        "maxOverdueDays24m": 0,
+        "activeLoans": 1
+      }
+    },
+    "bank": {
+      "found": true,
+      "turnoverMonthlyMinor": 250000000
+    }
+  },
+  "0000090011": {
+    "title": "Надёжная компания",
+    "fns": {
+      "status": "ACTIVE",
+      "okvedSection": "M",
+      "registeredAt": "2019-04-15",
+      "taxDebtMinor": 0
+    },
+    "bki": {
+      "company": {
+        "found": true,
+        "overdueCount12m": 0,
+        "maxOverdueDays24m": 0,
+        "activeLoans": 2
+      },
+      "owner": {
+        "found": true,
+        "overdueCount12m": 0,
+        "maxOverdueDays24m": 0,
+        "activeLoans": 1
+      }
+    },
+    "bank": {
+      "found": true,
+      "turnoverMonthlyMinor": 420000000
+    }
+  },
+  "0000090029": {
+    "title": "Просрочки у собственника",
+    "fns": {
+      "status": "ACTIVE",
+      "okvedSection": "F",
+      "registeredAt": "2021-02-10",
+      "taxDebtMinor": 0
+    },
+    "bki": {
+      "company": {
+        "found": true,
+        "overdueCount12m": 0,
+        "maxOverdueDays24m": 12,
+        "activeLoans": 1
+      },
+      "owner": {
+        "found": true,
+        "overdueCount12m": 3,
+        "maxOverdueDays24m": 75,
+        "activeLoans": 4
+      }
+    },
+    "bank": {
+      "found": false,
+      "turnoverMonthlyMinor": 0
+    }
+  },
+  "0000090036": {
+    "title": "Налоговая задолженность",
+    "fns": {
+      "status": "ACTIVE",
+      "okvedSection": "I",
+      "registeredAt": "2022-06-01",
+      "taxDebtMinor": 12000000
+    },
+    "bki": {
+      "company": {
+        "found": true,
+        "overdueCount12m": 0,
+        "maxOverdueDays24m": 0,
+        "activeLoans": 1
+      },
+      "owner": {
+        "found": true,
+        "overdueCount12m": 0,
+        "maxOverdueDays24m": 0,
+        "activeLoans": 0
+      }
+    },
+    "bank": {
+      "found": false,
+      "turnoverMonthlyMinor": 0
+    }
+  },
+  "0000090043": {
+    "title": "Ликвидированная компания",
+    "fns": {
+      "status": "LIQUIDATED",
+      "okvedSection": "G",
+      "registeredAt": "2018-01-20",
+      "taxDebtMinor": 0
+    },
+    "bki": {
+      "company": {
+        "found": true,
+        "overdueCount12m": 0,
+        "maxOverdueDays24m": 0,
+        "activeLoans": 0
+      },
+      "owner": {
+        "found": true,
+        "overdueCount12m": 0,
+        "maxOverdueDays24m": 0,
+        "activeLoans": 0
+      }
+    },
+    "bank": {
+      "found": false,
+      "turnoverMonthlyMinor": 0
+    }
+  },
+  "000000900509": {
+    "title": "ИП без кредитной истории",
+    "fns": {
+      "status": "ACTIVE",
+      "okvedSection": "S",
+      "registeredAt": "2026-04-01",
+      "taxDebtMinor": 0
+    },
+    "bki": {
+      "company": null,
+      "owner": {
+        "found": false,
+        "overdueCount12m": 0,
+        "maxOverdueDays24m": 0,
+        "activeLoans": 0
+      }
+    },
+    "bank": {
+      "found": false,
+      "turnoverMonthlyMinor": 0
+    }
+  },
+  "000000900682": {
+    "title": "БКИ не отвечает",
+    "faults": {
+      "bki": "UNAVAILABLE"
+    }
+  },
+  "7700000077": {
+    "title": "Надёжная компания для браузерных сценариев",
+    "fns": {
+      "status": "ACTIVE",
+      "okvedSection": "G",
+      "registeredAt": "2023-09-01",
+      "taxDebtMinor": 0
+    },
+    "bki": {
+      "company": {
+        "found": true,
+        "overdueCount12m": 0,
+        "maxOverdueDays24m": 0,
+        "activeLoans": 1
+      },
+      "owner": {
+        "found": true,
+        "overdueCount12m": 0,
+        "maxOverdueDays24m": 0,
+        "activeLoans": 1
+      }
+    },
+    "bank": {
+      "found": true,
+      "turnoverMonthlyMinor": 250000000
+    }
+  },
+  "7700000088": {
+    "title": "Надёжная компания для браузерных сценариев",
+    "fns": {
+      "status": "ACTIVE",
+      "okvedSection": "G",
+      "registeredAt": "2023-09-01",
+      "taxDebtMinor": 0
+    },
+    "bki": {
+      "company": {
+        "found": true,
+        "overdueCount12m": 0,
+        "maxOverdueDays24m": 0,
+        "activeLoans": 1
+      },
+      "owner": {
+        "found": true,
+        "overdueCount12m": 0,
+        "maxOverdueDays24m": 0,
+        "activeLoans": 1
+      }
+    },
+    "bank": {
+      "found": true,
+      "turnoverMonthlyMinor": 250000000
+    }
+  }
+}

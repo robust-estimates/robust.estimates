@@ -211,6 +211,7 @@ def to_application(row) -> Application:
         tax_debt_minor=int(row["tax_debt_minor"]),
         company_credit_history=_history(row, "company"),
         owner_credit_history=_history(row, "owner"),
+        credit_bureau_checked=True,
         account_turnover_monthly_minor=None if pd.isna(turnover) else int(turnover),
     )
 
@@ -219,7 +220,7 @@ def main() -> None:
     from risk.metrics import gini
     from risk.rules_v1 import assess_risk
 
-    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    parser = argparse.ArgumentParser(description="Генератор синтетических компаний с меткой дефолта")
     parser.add_argument("--n", type=int, default=20_000)
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--out", type=Path, default=Path(__file__).parent / "generated" / "companies.csv")

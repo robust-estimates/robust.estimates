@@ -17,7 +17,6 @@ export type ApiCompany = {
   representativePosition?: string
   phone?: string
   email?: string
-  hasOverdueDebt?: boolean
   verificationStatus: string
 }
 export type ApiDocument = { id: string; type: string; fileName: string; requestItemId?: string }
@@ -274,7 +273,7 @@ export function purpose(selection: Selection) {
 export async function saveCompany(
   applicant: Applicant,
   selection: Selection,
-  finance: { revenue: number; expenses: number; debts: number; overdue: boolean },
+  finance: { revenue: number; expenses: number; debts: number },
   companyId?: string,
 ) {
   const registered = new Date(applicant.registered)
@@ -294,7 +293,6 @@ export async function saveCompany(
     representativePosition: applicant.position,
     phone: applicant.phone.replace(/[\s()-]/g, ''),
     email: applicant.email,
-    hasOverdueDebt: finance.overdue,
     marketplaceSales: selection.purpose === 'Для селлеров',
   }
   const companies = await request<ApiCompany[]>('/companies')
@@ -375,7 +373,6 @@ export async function overview(value: ApiApplication, staff: boolean): Promise<L
       revenue: company.monthlyRevenueMinor / 100,
       expenses: company.monthlyExpensesMinor / 100,
       debts: company.monthlyDebtPaymentsMinor / 100,
-      overdue: company.hasOverdueDebt || false,
     },
     companyProfile: {
       registrationStatus: company.verificationStatus,

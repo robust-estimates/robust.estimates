@@ -68,8 +68,8 @@ def login(name):
     return request("POST", "/auth/login", body={"login": name + "@demo.local", "password": PASSWORD})["accessToken"]
 
 
-def company(token, age=36, revenue=300000000, overdue=False):
-    payload = {"inn": "7700000000", "name": "Синтетическая компания " + uuid.uuid4().hex[:6], "businessAgeMonths": age, "monthlyRevenueMinor": revenue, "monthlyExpensesMinor": revenue // 2, "monthlyDebtPaymentsMinor": 0, "hasOverdueDebt": overdue}
+def company(token, age=36, revenue=300000000, inn="7700000000"):
+    payload = {"inn": inn, "name": "Синтетическая компания " + uuid.uuid4().hex[:6], "businessAgeMonths": age, "monthlyRevenueMinor": revenue, "monthlyExpensesMinor": revenue // 2, "monthlyDebtPaymentsMinor": 0}
     c = request("POST", "/companies", token, payload, expected=201)
     request("POST", f'/companies/{c["id"]}/verification', token)
 
@@ -212,8 +212,8 @@ def availability():
         request("GET", "/products", expected=401)
 
 
-def company_payload(name, age=36, revenue=300000000, overdue=False):
-    return {"inn": "7700000000", "name": name + " " + uuid.uuid4().hex[:6], "businessAgeMonths": age, "monthlyRevenueMinor": revenue, "monthlyExpensesMinor": revenue // 2, "monthlyDebtPaymentsMinor": 0, "hasOverdueDebt": overdue}
+def company_payload(name, age=36, revenue=300000000, inn="7700000000"):
+    return {"inn": inn, "name": name + " " + uuid.uuid4().hex[:6], "businessAgeMonths": age, "monthlyRevenueMinor": revenue, "monthlyExpensesMinor": revenue // 2, "monthlyDebtPaymentsMinor": 0}
 
 
 def auth_test(state, args):
@@ -378,7 +378,7 @@ def alternative_test(state, args):
 
 def manual_test(state, args):
     client, employee = state["client"], state["employee"]
-    c = company(client, age=6, overdue=True)
+    c = company(client, age=6, inn="0000090029")
     state["manual_company"] = c
     a = draft(client, c)
     command(client, a, "submit", expected=202)

@@ -24,7 +24,6 @@ type CompanyData struct {
 	AnnualExpensesMinor      int64  `json:"annualExpensesMinor"`
 	CashFlowMinor            int64  `json:"cashFlowMinor"`
 	OutstandingDebtMinor     int64  `json:"outstandingDebtMinor"`
-	HasOverdueDebt           bool   `json:"hasOverdueDebt"`
 	MarketplaceSales         bool   `json:"marketplaceSales"`
 }
 
@@ -199,13 +198,40 @@ type Scoring struct {
 }
 
 type Features struct {
-	BusinessAgeMonths        int32 `json:"businessAgeMonths"`
-	MonthlyRevenueMinor      int64 `json:"monthlyRevenueMinor"`
-	MonthlyExpensesMinor     int64 `json:"monthlyExpensesMinor"`
-	MonthlyDebtPaymentsMinor int64 `json:"monthlyDebtPaymentsMinor"`
-	RequestedAmountMinor     int64 `json:"requestedAmountMinor"`
-	TermMonths               int32 `json:"termMonths"`
-	HasOverdueDebt           bool  `json:"hasOverdueDebt"`
+	BusinessAgeMonths        int32         `json:"businessAgeMonths"`
+	MonthlyRevenueMinor      int64         `json:"monthlyRevenueMinor"`
+	MonthlyExpensesMinor     int64         `json:"monthlyExpensesMinor"`
+	MonthlyDebtPaymentsMinor int64         `json:"monthlyDebtPaymentsMinor"`
+	RequestedAmountMinor     int64         `json:"requestedAmountMinor"`
+	TermMonths               int32         `json:"termMonths"`
+	Registry                 *RegistryData `json:"registry,omitempty"`
+	CreditReport             *CreditReport `json:"creditReport,omitempty"`
+	Account                  *AccountData  `json:"account,omitempty"`
+}
+
+type RegistryData struct {
+	Status       string `json:"status"`
+	LegalForm    string `json:"legalForm"`
+	OkvedSection string `json:"okvedSection"`
+	RegisteredAt string `json:"registeredAt"`
+	TaxDebtMinor int64  `json:"taxDebtMinor"`
+}
+
+type CreditHistory struct {
+	Found             bool  `json:"found"`
+	OverdueCount12m   int32 `json:"overdueCount12m"`
+	MaxOverdueDays24m int32 `json:"maxOverdueDays24m"`
+	ActiveLoans       int32 `json:"activeLoans"`
+}
+
+type CreditReport struct {
+	Company *CreditHistory `json:"company,omitempty"`
+	Owner   *CreditHistory `json:"owner,omitempty"`
+}
+
+type AccountData struct {
+	Found                bool  `json:"found"`
+	TurnoverMonthlyMinor int64 `json:"turnoverMonthlyMinor"`
 }
 
 type ScoringInput struct {

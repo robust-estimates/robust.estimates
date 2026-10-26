@@ -330,7 +330,6 @@ export function ApplicationForm({
       revenue: (initialCompany?.monthlyRevenueMinor || 0) / 100,
       expenses: (initialCompany?.monthlyExpensesMinor || 0) / 100,
       debts: (initialCompany?.monthlyDebtPaymentsMinor || 0) / 100,
-      overdue: initialCompany?.hasOverdueDebt || false,
     },
   )
   const [pending, setPending] = useState(false)
